@@ -96,7 +96,7 @@
     <div class="container-fluid border rounded-0 border-primary" style="height: 83vh;padding: 0px 12px;">
         <div class="row" id="mainrow" style="margin: 0;height: 100%;">
             <div class="col" style="height: 100%;">
-                <h1 class="text-center d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="height: 5%;">video Stream</h1><img class="placeholder border rounded-0 border-3 border-primary" src="http://0.0.0.0:8080/stream?topic=/sensors/cameras/lane/image_raw" id="webcamThing" style="height: 88%;width: 100%;">
+                <h1 class="text-center d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="height: 5%;">video Stream</h1><img class="placeholder border rounded-0 border-3 border-primary" src="http://0.0.0.0:8080/stream?topic=/sensors/cameras/lane/image_raw" draggable="false" onerror="this.src='./assets/img/gorillamunch.jpg'" id="webcamThing" style="height: 88%;width: 100%;">
             </div>
             <div class="col" style="width: 100%;height: 100%;">
                 <h1 class="text-center d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="height: 5%;">Sensor Data</h1>
@@ -158,6 +158,7 @@
     <script src="assets/bootstrap/js/bootstrap.min.js"></script>
     <script src="initialGraphData.js"></script>
     <script src="assets/js/offcanvas.js"></script>
+    <script src="videoStream.js"></script>
     <script src="navbarStuff.js"></script>
 </body> 
 

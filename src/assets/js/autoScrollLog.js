@@ -55,10 +55,7 @@ window.onload = function(){
     });
 }
 
-
-
 require('electron').ipcRenderer.on('logData', (event, message) => {
-    console.log('hi');
     logTextDiv.innerHTML += `<p style=${colorCode(message)}>${message}</p>`
     updateScroll();
 })

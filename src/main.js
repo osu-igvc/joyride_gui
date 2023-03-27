@@ -1,7 +1,6 @@
 // Create ros object to communicate over your Rosbridge connection
 const ROSLIB = require('roslib');
 const ros = new ROSLIB.Ros({ url: "ws://localhost:9190" });
-document.getElementById('webcamThing').src = "http://0.0.0.0:8080/stream?topic=/sensors/cameras/lane/image_raw";
 // When the Rosbridge server connects, fill the span with id "status" with "successful"
 ros.on("connection", () => {
   document.getElementById("status").innerHTML = "successful";
@@ -17,6 +16,7 @@ ros.on("error", (error) => {
 ros.on("close", () => {
   document.getElementById("status").innerHTML = "closed";
 });
+
 
 function updateSteeringAngle(angle){
   let angleDeg = Math.round(angle * 180/Math.PI);
