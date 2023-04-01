@@ -1,62 +1,51 @@
-let logTextDiv = document.getElementById("textBrowserDiv");
-let initialDiff = logTextDiv.scrollHeight - logTextDiv.scrollTop;
-let scrolled = false;
+let rosOutDiv = document.getElementById("rosOutDiv");
+let diagnosticDiv = document.getElementById("diagnosticDiv");
+let initialDiff = rosOutDiv.scrollHeight - rosOutDiv.scrollTop;
+let rosScrolled = false;
+let diagnosticScrolled = false;
 
-function updateScroll(){
-    if(!scrolled){
-        logTextDiv.scrollTop = logTextDiv.scrollHeight;
+function rosUpdateScroll(){
+    if(!rosScrolled){
+        rosOutDiv.scrollTop = rosOutDiv.scrollHeight;
     }
 }
 
-logTextDiv.onscroll = function(){
-    if (logTextDiv.scrollTop + 0.1*initialDiff >= logTextDiv.scrollHeight - initialDiff ){
-        scrolled = false;
+rosOutDiv.onscroll = function(){
+    if (rosOutDiv.scrollTop + 0.1*initialDiff >= rosOutDiv.scrollHeight - initialDiff){
+        rosScrolled = false;
     }
     else{
-        scrolled = true;
+        rosScrolled = true;
     }
 };
 
-// function br(){
-//     return document.createElement('br');
-// }
-// function addLine(text){
-//     return document.createTextNode(text);
-// }
-function colorCode(elementText){
-    if (elementText.includes("[INFO]")){
-        return "color:black";
+function diagnosticUpdateScroll(){
+    if(!diagnosticScrolled){
+        diagnosticDiv.scrollTop = diagnosticDiv.scrollHeight;
     }
-    else if (elementText.includes("[DEBUG]")){
-        return "color:green";
-    }
-    else if (elementText.includes("[WARN]")){
-        return "color:darkgoldenrod";
-    }
-    else if (elementText.includes("[ERROR]")){
-        return "color:red";
-    }
-    return "color:dark-red";
 }
-window.onload = function(){
-    let fs = require("fs");
-    let lines;
-    let elementStyle;
-    logTextDiv.innerHTML = "";
-    fs.readFile("./rosLogStuff.txt", 'utf8', function(err, data){
-        if (err) throw err;
-        lines = data.split("\n");
-        lines.forEach(element => {
-            elementStyle = colorCode(element) + ";font-size: 20px";
-            logTextDiv.innerHTML += `<p style="${elementStyle}">${element}</p>`
-            
-        });
-        updateScroll();
+
+diagnosticDiv.onscroll = function(){
+    if (diagnosticDiv.scrollTop + 0.1*initialDiff >= diagnosticDiv.scrollHeight - initialDiff){
+        diagnosticScrolled = false;
+    }
+    else{
+        diagnosticScrolled = true;
+    }
+};
+
+const ROSLIB = require('roslib');
+const ros = new ROSLIB.Ros({ url: "ws://localhost:9190" });
+
+const diagnosticMessages_listener = new ROSLIB.Topic({
+    ros: ros,
+    name: "/diagnostics_agg",
+    messageType: "diagnostic_msgs/DiagnosticArray"
+});
+
+diagnosticMessages_listener.subscribe((message) => {
+    message.status.forEach(element => {
+        diagnosticDiv.innerHTML += `<p class="logText">${element.name}</p>`
     });
-}
-
-require('electron').ipcRenderer.on('logData', (event, message) => {
-    logTextDiv.innerHTML += `<p style=${colorCode(message)}>${message}</p>`
-    updateScroll();
+    diagnosticUpdateScroll();
 })
-

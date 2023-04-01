@@ -32,14 +32,14 @@ let leftBlinker = false;
 let rightBlinker = false;
 setInterval(function(){
     if(leftBlinker){
-        let blinkerSVG = document.getElementById("leftBlinker");
+        let blinkerSVG = document.getElementById("leftBlinkerIcon");
         blinkerSVG.style.backgroundColor = 'var(--bs-success)';
         setTimeout(function(){
             blinkerSVG.style.backgroundColor = 'var(--bs-secondary)';
         }, 500);
     }
     if(rightBlinker){
-        let blinkerSVG = document.getElementById("rightBlinker");
+        let blinkerSVG = document.getElementById("rightBlinkerIcon");
         blinkerSVG.style.backgroundColor = 'var(--bs-success)';
         setTimeout(function(){
             blinkerSVG.style.backgroundColor = 'var(--bs-secondary)';
@@ -56,11 +56,11 @@ function highBeamsOnOff(isHighBeams){
 }
 
 function seatbeltOnOff(isSeatbelt){
-  document.getElementById("seatbeltDiv").style.backgroundColor = isSeatbelt ? 'var(--bs-green)' : 'var(--bs-red)';
+  document.getElementById("seatBeltIcon").style.backgroundColor = isSeatbelt ? 'var(--bs-green)' : 'var(--bs-red)';
 }
 
 function heatedSeatsOnOff(){
-  document.getElementById("heatedSeatsDiv").style.backgroundColor = 'var(--bs-orange';
+  document.getElementById("heatedSeatsIcon").style.backgroundColor = 'var(--bs-orange';
 }
 setInterval(function(){
   document.getElementById("navTime").innerHTML = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});

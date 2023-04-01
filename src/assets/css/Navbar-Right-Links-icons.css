@@ -55,3 +55,22 @@
   border-radius: 50%;
 }
 
+#compassSVG {
+  height: 100%;
+  width: 100%;
+}
+
+#poleCenter {
+  transform-origin: 0px 0px;
+  /*transform: rotate(1deg);*/
+}
+
+#poleCenter {
+  transform-origin: center;
+  transition-duration: 0.2s;
+}
+
+#rightBlinker {
+  transform: rotate(180deg);
+}
+

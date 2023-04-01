@@ -1,3 +1,7 @@
+document.getElementById("webcamThing").addEventListener("error", function(){
+  document.getElementById("webcamThing").src="./assets/img/gorillamunch.jpg";
+})
+
 gorilladID = setInterval(() => {
     // console.log(document.getElementById("webcamThing").src);
     if(document.getElementById("webcamThing").src.includes("gorillamunch.jpg")){
