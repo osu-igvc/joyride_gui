@@ -1,85 +1,113 @@
 document.getElementById("navTime").innerHTML = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-// Icon stuffs
+const ROSLIB = require('roslib');
+const ros = new ROSLIB.Ros({ url: "ws://localhost:9190" });
 
-// let leftBlinkerIntervalId = null;
-// function leftBlinkerOn(){
-//   let blinkerSVG = document.getElementById("leftBlinker");
-//   leftBlinkerIntervalId = setInterval(function(){
-//     blinkerSVG.style.backgroundColor = 'var(--bs-success)';
-//     setTimeout(function(){
-//       blinkerSVG.style.backgroundColor = 'var(--bs-secondary)';
-//     }, 500);
-//   }, 1000);
-  
-//   // return the interval ID for later use
-//   return leftBlinkerIntervalId;
-// }
+let connectRos = setInterval(function(){
+    if(ros.isConnected){
+      clearInterval(connectRos);
+    }
+    else{
+      ros.connect("ws://localhost:9190");
+    }
+}, 1000);
 
-// let rightBlinderIntervalId = null;
-// function rightBlinkerOn(){
-//   let blinkerSVG = document.getElementById("rightBlinker");
-//   rightBlinderIntervalId = setInterval(function(){
-//     blinkerSVG.style.backgroundColor = 'var(--bs-success)';
-//     setTimeout(function(){
-//       blinkerSVG.style.backgroundColor = 'var(--bs-secondary)';
-//     }, 500);
-//   }, 1000);
+ros.on("connection", () => {
+  document.getElementById("rosBridgeIcon").style.setProperty("--color1", "var(--bs-success)");
+});
 
-//   return rightBlinderIntervalId;
-// }
+ros.on("error", () => {
+  document.getElementById("rosBridgeIcon").style.setProperty("--color1", "var(--bs-warning)");
+});
+
+ros.on("close", () => {
+  document.getElementById("rosBridgeIcon").style.setProperty("--color1", "var(--bs-danger)");
+  connectRos = setInterval(function(){
+    if(ros.isConnected){
+      clearInterval(connectRos);
+    }
+    else{
+      ros.connect("ws://localhost:9190");
+    }
+  }, 1000);
+});
+
+
+
 let leftBlinker = false;
 let rightBlinker = false;
 setInterval(function(){
     if(leftBlinker){
-        let blinkerSVG = document.getElementById("leftBlinkerIcon");
-        blinkerSVG.style.backgroundColor = 'var(--bs-success)';
+        let leftBlinky = document.getElementById("leftBlinkerIcon");
+        leftBlinky.style.setProperty("--color1",'var(--bs-success)');
         setTimeout(function(){
-            blinkerSVG.style.backgroundColor = 'var(--bs-secondary)';
+            leftBlinky.style.setProperty("--color1", 'var(--bs-secondary)');
         }, 500);
     }
     if(rightBlinker){
-        let blinkerSVG = document.getElementById("rightBlinkerIcon");
-        blinkerSVG.style.backgroundColor = 'var(--bs-success)';
+        let rightBlinky = document.getElementById("rightBlinkerIcon");
+        rightBlinky.style.setProperty("--color1", 'var(--bs-success)');
         setTimeout(function(){
-            blinkerSVG.style.backgroundColor = 'var(--bs-secondary)';
+            rightBlinky.style.setProperty("--color1", 'var(--bs-secondary)');
         }, 500);
     }
 }, 1000);
 
-function headlightsOnOff(isHeadlights){
-  document.getElementById("headlightsDiv").style.backgroundColor = isHeadlights ? 'var(--bs-warning)' : 'var(--bs-secondary)';
+function headHightLightBeamOnOff(getHeadOrHigh){
+  if(getHeadOrHigh == "head"){
+    let head = document.getElementById("headHightLightBeamIcon");
+    head.style.setProperty("--color1", 'var(--bs-warning)');
+    head.src = "./assets/img/head.svg";
+  }
+  else if(getHeadOrHigh == "high"){
+    let high = document.getElementById("headHightLightBeamIcon");
+    high.style.setProperty("--color1", 'var(--bs-blue)');
+    high.src = "./assets/img/high.svg";
+  }
 }
-
-function highBeamsOnOff(isHighBeams){
-  document.getElementById("highbeamsDiv").style.backgroundColor = isHighBeams ? 'var(--bs-blue)' : 'var(--bs-secondary)';
-}
-
 function seatbeltOnOff(isSeatbelt){
-  document.getElementById("seatBeltIcon").style.backgroundColor = isSeatbelt ? 'var(--bs-green)' : 'var(--bs-red)';
+  document.getElementById("seatBeltIcon").style.setProperty("--color1", isSeatbelt ? 'var(--bs-green)' : 'var(--bs-red)');
 }
 
 function heatedSeatsOnOff(){
-  document.getElementById("heatedSeatsIcon").style.backgroundColor = 'var(--bs-orange';
+  document.getElementById("heatedSeatsIcon").style.setProperty("--color1", 'var(--bs-orange');
 }
+
 setInterval(function(){
-  document.getElementById("navTime").innerHTML = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  if(document.getElementById("navTime").innerHTML.includes("4:20")){
-    document.getElementById("navTime").style.backgroundColor = "var(--bs-green)";
+  let currentTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+  if(currentTime.includes("4:20")){
+    document.getElementById("navTime").style.color = "var(--bs-green)";
     document.getElementById("navTime").innerHTML = "WEED NUMBER!!!!";
   }
-}, 1000);
-
-
+  else{
+    document.getElementById("navTime").style.color = "var(--bs-black)";
+    document.getElementById("navTime").innerHTML = currentTime;
+  }
+  
+}, 15000);
 
 
 seatbeltOnOff(false);
 heatedSeatsOnOff();
 
 function updateAccessories(message){
-  headlightsOnOff(message.headlights_on);
-  highBeamsOnOff(message.highbeams_on);
+  headHightLightBeamOnOff(message.headlights_on ? "head" : "high");
   seatbeltOnOff(message.driver_seatbelt_on);
   leftBlinker = message.left_turn_signal_on;
   rightBlinker = message.right_turn_signal_on;
 }
+
+const accessoriesGEMFeedback_listener = new ROSLIB.Topic({
+  ros: ros,
+  name: "/feedback/gem_accessories",
+  messageType: "joyride_interfaces/msg/AccessoriesGEMFeedback"
+});
+
+accessoriesGEMFeedback_listener.subscribe((message) => {
+  updateAccessories(message);
+
+  if(document.getElementById("reverseGear")){
+    updateGear(message.gear_status);
+  }
+});

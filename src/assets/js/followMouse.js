@@ -29,22 +29,22 @@ compass.addEventListener('touchmove', (event) => {
 
 });
 
-// compass.addEventListener('mousemove', (event) => {
-//     const x = poles.getBoundingClientRect().left + poles.clientWidth/2;
-//     const y = poles.getBoundingClientRect().top + poles.clientHeight/2;
-//     const radian = Math.atan2(-event.pageX + x, -event.pageY + y);
-//     rotate = radian * (180 / Math.PI) * -1;
+compass.addEventListener('mousemove', (event) => {
+    const x = poles.getBoundingClientRect().left + poles.clientWidth/2;
+    const y = poles.getBoundingClientRect().top + poles.clientHeight/2;
+    const radian = Math.atan2(-event.pageX + x, -event.pageY + y);
+    rotate = radian * (180 / Math.PI) * -1;
     
-//     poles.style.transform = `rotate(${round(rotate, 15)}deg)`;
-//     if(round(rotate, 15) <= 90 && round(rotate, 15) >= -180){
-//         rotate = Math.abs(round(rotate, 15) - 90);
-//     }
-//     else if(round(rotate, 15) > 90 && round(rotate, 15) <= 180){
-//         rotate = 360 + 90 - round(rotate, 15);
-//     }
-//     // rotate = rotate == 90 ? 270 : rotate;
-//     document.getElementById('heading').innerHTML = `  ${rotate}°`
+    poles.style.transform = `rotate(${round(rotate, 15)}deg)`;
+    if(round(rotate, 15) <= 90 && round(rotate, 15) >= -180){
+        rotate = Math.abs(round(rotate, 15) - 90);
+    }
+    else if(round(rotate, 15) > 90 && round(rotate, 15) <= 180){
+        rotate = 360 + 90 - round(rotate, 15);
+    }
+    // rotate = rotate == 90 ? 270 : rotate;
+    document.getElementById('heading').innerHTML = `  ${rotate}°`
 
-// });
+});
 
 // setInterval(function(){console.log(rot)}, 2000);

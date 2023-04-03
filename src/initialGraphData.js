@@ -1,5 +1,3 @@
-const ROSLIB = require('roslib');
-const ros = new ROSLIB.Ros({ url: "ws://localhost:9190" });
 
 const {Chart} = require("chart.js");
 require("luxon");

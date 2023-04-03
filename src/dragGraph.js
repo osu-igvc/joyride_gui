@@ -1,10 +1,3 @@
-// import {Chart} from '../node_modules/chart.js/dist/Chart.js';
-// import "../node_modules/chartjs-adapter-luxon/dist/chartjs-adapter-luxon.esm.js";
-// import ChartStreaming from "../node_modules/chartjs-plugin-streaming/dist/chartjs-plugin-streaming.js";
-
-
-// Chart.register(ChartStreaming);
-
 
 let velButt = document.getElementById("velocityButt");
 velButt.draggable = true;

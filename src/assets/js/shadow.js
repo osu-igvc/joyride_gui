@@ -22,7 +22,8 @@ document.getElementById("toggleDriveModeButt").onclick = () => {
     }
 }
 
-document.getElementById("driveModeCancelButt").onclick = () => {                       driveHead.hidden = true;
+document.getElementById("driveModeCancelButt").onclick = () => {
+    driveHead.hidden = true;
     drivePushButtHead.hidden = true;
     driveModeButts.hidden = false;
     if (countdown){
@@ -31,7 +32,7 @@ document.getElementById("driveModeCancelButt").onclick = () => {                
 }
 
 manualButt.addEventListener("click", function(){
-    driveImg.src = "DriveMode/driveModeManual.svg";
+    driveImg.src = "./assets/img/DriveMode/driveModeManual.svg";
     shadowCanvasUtil.hide();
 });
 
@@ -45,8 +46,8 @@ joystickButt.addEventListener("click", function(){
         if(count <= 0){
             shadowCanvasUtil.hide();
             driveModeButts.hidden = false;
-            driveImg.src = "DriveMode/driveModeJoystick.svg";
-            clearInterval(countDown);
+            driveImg.src = "./assets/img/DriveMode/driveModeJoystick.svg";
+            clearInterval(countdown);
 
         }
         else{
@@ -65,8 +66,8 @@ autonomyButt.addEventListener("click", function(){
         if(count <= 0){
             shadowCanvasUtil.hide();
             driveModeButts.hidden = false;
-            driveImg.src = "DriveMode/driveModeAutonomy.svg";
-            clearInterval(countDown);
+            driveImg.src = "./assets/img/DriveMode/driveModeAutonomy.svg";
+            clearInterval(countdown);
 
         }
         else{

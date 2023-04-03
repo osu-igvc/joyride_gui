@@ -34,9 +34,6 @@ diagnosticDiv.onscroll = function(){
     }
 };
 
-const ROSLIB = require('roslib');
-const ros = new ROSLIB.Ros({ url: "ws://localhost:9190" });
-
 const diagnosticMessages_listener = new ROSLIB.Topic({
     ros: ros,
     name: "/diagnostics_agg",

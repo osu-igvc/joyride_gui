@@ -67,7 +67,7 @@
 
 #poleCenter {
   transform-origin: center;
-  transition-duration: 0.2s;
+  transition-duration: 0s;
 }
 
 #rightBlinker {
