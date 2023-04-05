@@ -1,68 +1,87 @@
 document.getElementById("navTime").innerHTML = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-const ROSLIB = require('roslib');
-const ros = new ROSLIB.Ros({ url: "ws://localhost:9190" });
+document.getElementById("status").onclick = () => {window.location.href = "systemHealth.html"};
+const { ros } = require("./allDaRos.js");
 
 let connectRos = setInterval(function(){
-    if(ros.isConnected){
-      clearInterval(connectRos);
-    }
-    else{
-      ros.connect("ws://localhost:9190");
-    }
+  if(ros.isConnected){
+    clearInterval(connectRos);
+  }
+  else{
+    ros.connect("ws://localhost:9190");
+  }
 }, 1000);
 
 ros.on("connection", () => {
-  document.getElementById("rosBridgeIcon").style.setProperty("--color1", "var(--bs-success)");
+document.getElementById("rosBridgeIcon").style.setProperty("--color1", "var(--bs-success)");
 });
 
 ros.on("error", () => {
-  document.getElementById("rosBridgeIcon").style.setProperty("--color1", "var(--bs-warning)");
+document.getElementById("rosBridgeIcon").style.setProperty("--color1", "var(--bs-warning)");
 });
 
 ros.on("close", () => {
-  document.getElementById("rosBridgeIcon").style.setProperty("--color1", "var(--bs-danger)");
-  connectRos = setInterval(function(){
-    if(ros.isConnected){
-      clearInterval(connectRos);
-    }
-    else{
-      ros.connect("ws://localhost:9190");
-    }
-  }, 1000);
+document.getElementById("rosBridgeIcon").style.setProperty("--color1", "var(--bs-danger)");
+connectRos = setInterval(function(){
+  if(ros.isConnected){
+    clearInterval(connectRos);
+  }
+  else{
+    ros.connect("ws://localhost:9190");
+  }
+}, 1000);
 });
 
-
-
-let leftBlinker = false;
-let rightBlinker = false;
-setInterval(function(){
-    if(leftBlinker){
+let leftBlinkerID = null;
+let rightBlinkerID = null;
+function blinkerOnOff(leftBlinker, rightBlinker){
+  if(leftBlinker && !leftBlinkerID){
+    leftBlinkerID = setInterval(function(){
         let leftBlinky = document.getElementById("leftBlinkerIcon");
         leftBlinky.style.setProperty("--color1",'var(--bs-success)');
         setTimeout(function(){
             leftBlinky.style.setProperty("--color1", 'var(--bs-secondary)');
         }, 500);
-    }
-    if(rightBlinker){
-        let rightBlinky = document.getElementById("rightBlinkerIcon");
-        rightBlinky.style.setProperty("--color1", 'var(--bs-success)');
-        setTimeout(function(){
-            rightBlinky.style.setProperty("--color1", 'var(--bs-secondary)');
-        }, 500);
-    }
-}, 1000);
-
-function headHightLightBeamOnOff(getHeadOrHigh){
-  if(getHeadOrHigh == "head"){
-    let head = document.getElementById("headHightLightBeamIcon");
-    head.style.setProperty("--color1", 'var(--bs-warning)');
-    head.src = "./assets/img/head.svg";
+      }, 1000);
   }
-  else if(getHeadOrHigh == "high"){
-    let high = document.getElementById("headHightLightBeamIcon");
-    high.style.setProperty("--color1", 'var(--bs-blue)');
-    high.src = "./assets/img/high.svg";
+  if(rightBlinker && !rightBlinkerID){
+    rightBlinkerID = setInterval(function(){
+      let rightBlinky = document.getElementById("rightBlinkerIcon");
+      rightBlinky.style.setProperty("--color1", 'var(--bs-success)');
+      setTimeout(function(){
+          rightBlinky.style.setProperty("--color1", 'var(--bs-secondary)');
+      }, 500);
+    }, 1000);
+  }
+  if(!leftBlinker && leftBlinkerID){
+    clearInterval(leftBlinkerID);
+    leftBlinkerID = null;
+  }
+  if(!rightBlinker && rightBlinkerID){
+    clearInterval(rightBlinkerID);
+    rightBlinkerID = null;
+  }
+  if(!leftBlinker && !rightBlinker){
+    clearInterval(leftBlinkerID);
+    clearInterval(rightBlinkerID);
+    leftBlinkerID = null;
+    rightBlinkerID = null;
+  }
+}
+
+function headHighLightBeamOnOff(timeForHead, timeForHigh){
+  let headHighDiv = document.getElementById("headHighLightBeamIconDiv");
+  let headHigh = document.getElementById("headHighLightBeamIcon");
+  if(timeForHead){
+    headHighDiv.style.setProperty("--color1", 'var(--bs-warning)');
+    headHigh.src = "./assets/img/head.svg";
+  }
+  if(timeForHigh){
+    headHighDiv.style.setProperty("--color1", 'var(--bs-blue)');
+    headHigh.src = "./assets/img/high.svg";
+  }
+  if(!timeForHead && !timeForHigh){
+    headHighDiv.style.setProperty("--color1", 'var(--bs-secondary)');
+    headHigh.src = "./assets/img/head.svg";
   }
 }
 function seatbeltOnOff(isSeatbelt){
@@ -71,6 +90,23 @@ function seatbeltOnOff(isSeatbelt){
 
 function heatedSeatsOnOff(){
   document.getElementById("heatedSeatsIcon").style.setProperty("--color1", 'var(--bs-orange');
+}
+
+function wipersOnOff(isWipers){
+  document.getElementById("wipiesIcon").style.setProperty("--color1", isWipers ? 'var(--bs-blue' : 'var(--bs-secondary)');
+}
+
+function updateGear(gear){
+  if(gear != 3){
+    document.getElementById("reverseGear").style.backgroundColor = gear == 2 ? 'var(--bs-success)' : 'var(--bs-secondary)';
+    document.getElementById("neutralGear").style.backgroundColor = gear == 0 ? 'var(--bs-success)' : 'var(--bs-secondary)';
+    document.getElementById("forwardGear").style.backgroundColor = gear == 1 ? 'var(--bs-success)' : 'var(--bs-secondary)';
+  }
+  else{
+    document.getElementById("reverseGear").style.backgroundColor = 'var(--bs-secondary)';
+    document.getElementById("neutralGear").style.backgroundColor = 'var(--bs-secondary)';
+    document.getElementById("forwardGear").style.backgroundColor = 'var(--bs-secondary)';
+  }
 }
 
 setInterval(function(){
@@ -92,22 +128,42 @@ seatbeltOnOff(false);
 heatedSeatsOnOff();
 
 function updateAccessories(message){
-  headHightLightBeamOnOff(message.headlights_on ? "head" : "high");
+  headHighLightBeamOnOff(message.headlights_on, message.highbeams_on);
   seatbeltOnOff(message.driver_seatbelt_on);
   leftBlinker = message.left_turn_signal_on;
   rightBlinker = message.right_turn_signal_on;
+  blinkerOnOff(leftBlinker, rightBlinker);
+  wipersOnOff(message.wipers_on);
 }
 
-const accessoriesGEMFeedback_listener = new ROSLIB.Topic({
-  ros: ros,
-  name: "/feedback/gem_accessories",
-  messageType: "joyride_interfaces/msg/AccessoriesGEMFeedback"
-});
+const {accessoriesGEMFeedback_listener, driveByWire_listener} = require("./allDaRos.js");
 
 accessoriesGEMFeedback_listener.subscribe((message) => {
   updateAccessories(message);
-
   if(document.getElementById("reverseGear")){
     updateGear(message.gear_status);
   }
+});
+
+// Drive by wire stuffs
+let allowAutonomy = false;
+
+function eStopOnOff(isEStop){
+  document.getElementById("eStopIcon").style.setProperty("--color1", isEStop ? 'var(--bs-danger)' : 'var(--bs-secondary)');
+}
+
+function pBrakeOnOff(isPBrake){
+  document.getElementById("pBrakeIcon").style.setProperty("--color1", isPBrake ? 'var(--bs-danger)' : 'var(--bs-secondary)');
+}
+
+function driveByWireOnOff(isDriveByWire){
+  allowAutonomy = isDriveByWire;
+  document.getElementById("driveByWireIcon").style.setProperty("--color1", isDriveByWire ? 'var(--bs-success)' : 'var(--bs-danger)');
+}
+
+driveByWire_listener.subscribe((message) => {
+  eStopOnOff(message.estop_active);
+  pBrakeOnOff(message.parking_brake_active);
+  driveByWireOnOff(message.enable_ready);
+
 });

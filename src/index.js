@@ -1,37 +1,15 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const ROSLIB = require('roslib');
-const { spawn } = require('child_process');
-// // See the Electron documentation for details on how to use preload scripts:
-// // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
-
-// let isRos = true;
-
-// const command = 'ros2';
-// const args = ['launch', 'rosbridge_server', 'rosbridge_websocket_launch.xml', 'port:=9190'];
-
-// // Spawn the child process
-// rosServer = spawn(command, args);
-
-// const logCommand = 'ros2';
-// const logArgs = ['launch', 'turtlesim', 'multisim.launch.py'];
-
-// loggingDemo = spawn(logCommand, logArgs);
-
-
-// while(isRos){
-const ros = new ROSLIB.Ros({ url: "ws://localhost:9190" });
-//   time.sleep(1);
-//   ros.on('connection', function() {
-//     isRos = false;
-//   });
-//   ros.on('error', function(error) {
-//     console.log(error);
-//   });
-// }
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception:', error);
+
+  // Handle the error as appropriate, e.g. show an error dialog
+});
+
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
@@ -77,10 +55,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-// app.on('before-quit', () => {
-//   rosServer.kill('SIGKILL');
-//   loggingDemo.kill('SIGKILL');
-// });
 
 app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
@@ -92,38 +66,9 @@ app.on('activate', () => {
 
 
 
-
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-const log_listener = new ROSLIB.Topic({
-  ros: ros,
-  name: "/rosout",
-  messageType: "rcl_interfaces/msg/Log"
-});
-
-// fs.appendFile('./rosLogStuff.txt', "WHAT UP BROTHER\n", function(err){
-//   if (err) throw err;
-//   console.log("yeeet");
-// });
-
-
-// const steeringAngle_listener = new ROSLIB.Topic({
-//   ros: ros,
-//   name: "/feedback/steer_angle",
-//   messageType: "std_msgs/msg/Float32"
-// });
-
-// const steeringTorque_listener = new ROSLIB.Topic({
-//   ros: ros,
-//   name: "/feedback/steering_torque",
-//   messageType: "std_msgs/msg/Float32"
-// });
-
-// const wheelSpeed_listener = new ROSLIB.Topic({
-//   ros: ros,
-//   name: "/feedback/wheelspeed",
-//   messageType: "std_msgs/msg/Float32"
-// });
+const { log_listener } = require('./allDaRos.js');
 
 fs.writeFile('./rosLogStuff.txt', '', function(err){if (err) throw err;});
 
@@ -160,23 +105,6 @@ log_listener.subscribe((message) => {
   win.webContents.send('logData', `${convertSecondstoTime(messageTimeStamp)}> ${String(messageLabel)} ${String(message.msg)}\n`);
 });
 
-
-  // var speedStuff = [];
-  // var steeringStuff = [];
-
-  // steeringAngle_listener.subscribe((message) => {
-  //     // steeringAngle = String(message.data);
-  //     // updateCSV();
-  //     steeringStuff.push(message.data);
-  //     // win.webContents.send('ping', steeringStuff);
-  // });
-
-  // wheelSpeed_listener.subscribe((message) => {
-  //     // speed = String(message.data);
-  //     // updateCSV();
-  //     speedStuff.push(message.data);
-  //     // win.webContents.send('logData', speedStuff);
-  // });
 
 
   

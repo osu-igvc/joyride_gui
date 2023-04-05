@@ -34,15 +34,4 @@ diagnosticDiv.onscroll = function(){
     }
 };
 
-const diagnosticMessages_listener = new ROSLIB.Topic({
-    ros: ros,
-    name: "/diagnostics_agg",
-    messageType: "diagnostic_msgs/DiagnosticArray"
-});
 
-diagnosticMessages_listener.subscribe((message) => {
-    message.status.forEach(element => {
-        diagnosticDiv.innerHTML += `<p class="logText">${element.name}</p>`
-    });
-    diagnosticUpdateScroll();
-})

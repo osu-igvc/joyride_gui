@@ -155,13 +155,10 @@ const chart3Chart = new Chart(chart3Canv, {
     }
 });
 
-const wheelSpeed_listener1 = new ROSLIB.Topic({
-    ros: ros,
-    name: "/feedback/wheelspeed",
-    messageType: "std_msgs/msg/Float32"
-});
+const { steeringAngle_listener } = require("./allDaRos.js");
+const { wheelSpeed_listener } = require("./allDaRos.js");
 
-wheelSpeed_listener1.subscribe((message) => {
+wheelSpeed_listener.subscribe((message) => {
     testVelData = {
         x: Date.now(),
         y: message.data
@@ -169,13 +166,7 @@ wheelSpeed_listener1.subscribe((message) => {
     
 });
 
-const steeringAngle_listener1 = new ROSLIB.Topic({
-    ros: ros,
-    name: "/feedback/steer_angle",
-    messageType: "std_msgs/msg/Float32"
-});
-
-steeringAngle_listener1.subscribe((message) => {
+steeringAngle_listener.subscribe((message) => {
     testSteerAngleData = {
         x: Date.now(),
         y: message.data
@@ -202,9 +193,8 @@ let timeButt = document.getElementById("timeButt");
 timeButt.draggable = true;
 timeButt.addEventListener("dragstart", drag);
 
-
-
 window.addEventListener('DOMContentLoaded', (event) => {
+    
     let chart1x = document.getElementById("chart1x");
     let chart1y = document.getElementById("chart1y");
     let chart2x = document.getElementById("chart2x");
@@ -232,7 +222,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
     chart3y.addEventListener("dragover", allowDrop);
     chart3y.addEventListener("drop", dropChartY);
     chart3y.myParam = chart3Chart;
-
     
 });
 

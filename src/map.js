@@ -1,4 +1,5 @@
 const L = require('leaflet');
+const ROSLIB = require('roslib');
 
 const map = L.map('mapDiv').setView([36.11, -97.058], 13);
 const tileUrl = 'http://localhost:9154/styles/basic-preview/{z}/{x}/{y}.png'; // path to your MBTiles file

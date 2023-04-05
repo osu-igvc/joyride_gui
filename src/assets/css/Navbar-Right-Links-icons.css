@@ -55,6 +55,10 @@
   border-radius: 50%;
 }
 
+#navTime {
+  color: var(--bs-black);
+}
+
 #compassSVG {
   height: 100%;
   width: 100%;
@@ -67,7 +71,6 @@
 
 #poleCenter {
   transform-origin: center;
-  transition-duration: 0s;
 }
 
 #rightBlinker {

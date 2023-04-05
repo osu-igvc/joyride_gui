@@ -12,33 +12,22 @@
     <link rel="stylesheet" href="assets/css/go_pokesregular.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+Georgian&amp;display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&amp;display=swap">
+    <link rel="stylesheet" href="assets/css/animationstuffs.css">
+    <link rel="stylesheet" href="assets/css/leafletstuff.css">
     <link rel="stylesheet" href="assets/css/Navbar-Right-Links-icons.css">
     <link rel="stylesheet" href="assets/css/scrollbar2.css">
-    <link rel="stylesheet" href="assets/css/speed.css">
-    <link rel="stylesheet" href="assets/css/steering.css">
     <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 
 <body>
     <nav class="navbar navbar-light navbar-expand-md py-3" style="height: 8vh;width: 100%;border-bottom-style: solid;background: var(--bs-gray-400);">
-        <div class="container-fluid"><a class="navbar-brand d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="height: 8vh;margin: 0% 0% 0% -0.75%;width: 17%;--color1: var(--bs-white);color: #FE5C00;"><span class="d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="text-align: center;height: 100%;width: 100%;font-family: go_pokesregular;-webkit-text-stroke-width: 1px;-webkit-text-stroke-color: black;font-size: 40px;border-right-style: solid;border-right-color: var(--bs-gray-700);">Joyride</span></a>
-            <div class="collapse navbar-collapse d-xxl-flex justify-content-xxl-end align-items-xxl-center" id="navcol-1" style="height: 8vh;width: 92.5%;">
+        <div class="container-fluid"><a class="navbar-brand d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="height: 8vh;margin: 0% 0% 0% -0.75%;width: 17%;--color1: var(--bs-white);color: #FE5C00;"><span class="d-xxl-flex justify-content-xxl-center align-items-xxl-center" id="joyride" style="text-align: center;height: 100%;width: 100%;font-family: go_pokesregular;-webkit-text-stroke-width: 1px;-webkit-text-stroke-color: black;font-size: 40px;border-right-style: solid;border-right-color: var(--bs-gray-700);">Joyride</span></a>
+            <div class="collapse navbar-collapse d-xxl-flex justify-content-xxl-end align-items-xxl-center" id="navcol-2" style="height: 8vh;width: 92.5%;">
                 <div class="d-flex me-auto justify-content-xxl-center align-items-xxl-center" style="width: 18%;height: 100%;margin: 0% 1%;">
                     <div class="d-xxl-flex align-items-xxl-center navIcon gradientThing" id="leftBlinkerIcon" style="--color1: var(--bs-white);"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none">
 <path d="M3 12L10 5V9H20.2C20.48 9 20.62 9 20.727 9.0545C20.8211 9.10243 20.8976 9.17892 20.9455 9.273C21 9.37996 21 9.51997 21 9.8V14.2C21 14.48 21 14.62 20.9455 14.727C20.8976 14.8211 20.8211 14.8976 20.727 14.9455C20.62 15 20.48 15 20.2 15H10V19L3 12Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg></div>
-                    <div class="d-xxl-flex align-items-xxl-center navIcon gradientThing" id="headHighLightBeamIcon" style="--color1: var(--bs-white);"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000" height="80%" width="100%" version="1.1" id="Layer_1" viewBox="0 0 512 512" xml:space="preserve">
-<g>
-	<g>
-		<g>
-			<path d="M319.66,17.515C317.804,7.36,308.972,0,298.668,0C133.975,0,0.001,114.837,0.001,256c0,141.141,133.973,256,298.667,256     c10.304,0,19.136-7.381,20.992-17.536l2.197-12.053c26.069-153.365,26.048-305.792-0.043-453.077L319.66,17.515z"/>
-			<path d="M373.015,146.285l106.667,64c3.435,2.069,7.232,3.051,10.965,3.051c7.253,0,14.315-3.691,18.304-10.368     c6.059-10.091,2.795-23.211-7.317-29.269l-106.667-64c-10.112-6.08-23.232-2.773-29.269,7.317     C359.639,127.127,362.903,140.226,373.015,146.285z"/>
-			<path d="M501.638,301.702l-106.667-64c-10.133-6.08-23.232-2.773-29.269,7.317c-6.059,10.091-2.795,23.211,7.317,29.269     l106.667,64c3.435,2.069,7.232,3.029,10.944,3.029c7.253,0,14.315-3.669,18.325-10.347     C515.013,320.86,511.75,307.761,501.638,301.702z"/>
-			<path d="M501.638,429.702l-106.667-64c-10.133-6.08-23.232-2.773-29.269,7.317c-6.059,10.091-2.795,23.211,7.317,29.269     l106.667,64c3.435,2.069,7.232,3.029,10.944,3.029c7.253,0,14.315-3.669,18.325-10.347     C515.013,448.86,511.75,435.761,501.638,429.702z"/>
-		</g>
-	</g>
-</g>
-</svg></div>
+                    <div class="d-xxl-flex align-items-xxl-center navIcon gradientThing" id="headHighLightBeamIconDiv" style="--color1: var(--bs-white);"><img id="headHighLightBeamIcon" src="assets/img/head.svg" width="80%" height="80%"></div>
                     <div class="d-xxl-flex align-items-xxl-center navIcon gradientThing" id="rightBlinkerIcon" style="--color1: var(--bs-white);"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" id="rightArrow">
 <path d="M3 12L10 5V9H20.2C20.48 9 20.62 9 20.727 9.0545C20.8211 9.10243 20.8976 9.17892 20.9455 9.273C21 9.37996 21 9.51997 21 9.8V14.2C21 14.48 21 14.62 20.9455 14.727C20.8976 14.8211 20.8211 14.8976 20.727 14.9455C20.62 15 20.48 15 20.2 15H10V19L3 12Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg></div>
@@ -150,9 +139,8 @@
 </div>
     <script src="assets/bootstrap/js/bootstrap.min.js"></script>
     <script src="navbarStuff.js"></script>
-    <script src="assets/js/autoScrollLog.js"></script>
     <script src="assets/js/offcanvas.js"></script>
-    <script src="assets/js/populateNode.js"></script>
+    <script src="autoScrollLog.js"></script>
     <script src="diagnostics.js"></script>
 </body>
 
