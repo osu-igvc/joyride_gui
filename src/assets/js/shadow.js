@@ -1,6 +1,8 @@
 let shadowCanvas = document.getElementById("shadowOffCanv");
 let shadowCanvasUtil = new bootstrap.Offcanvas(shadowCanvas);
 
+let toggleDriveModeButt = document.getElementById("toggleDriveModeButt");
+
 let driveModeButts = document.getElementById("driveModeButts");
 let manualButt = document.getElementById("manualButt");
 let joystickButt = document.getElementById("joystickButt");
@@ -19,7 +21,7 @@ let autoModeInterval = null;
 const ROSLIB = require('roslib');
 const { automodeClient } = require('./allDaRos');
 
-document.getElementById("toggleDriveModeButt").onclick = () => {
+toggleDriveModeButt.onclick = () => {
     driveHead.hidden = true;
     drivePushButtHead.hidden = true;
     driveModeButts.hidden = false;
@@ -38,6 +40,41 @@ document.getElementById("driveModeCancelButt").onclick = () => {
     if (autoModeInterval){
         clearInterval(autoModeInterval);
     }
+}
+
+function changeToggleButton(currentMode){
+    toggleDriveModeButt.innerHTML = `Exit ${currentMode} Mode`;
+}
+
+
+function makeAutoModeRequest(enableDisable){
+    let request = new ROSLIB.ServiceRequest({
+        string: "onboard_interface",
+        bool: enableDisable,
+    });
+
+    automodeClient.callService(request, function(result) {
+        drivePushButtHead.classList.remove("blink_me");
+        console.log(result);
+        if(result == 0){
+            drivePushButtHead.style.setProperty("color", "var(--bs-black)");
+            drivePushButtHead.innerHTML = "Requesting Autonomous Mode...";
+        }
+        else if(result == 1){
+            drivePushButtHead.style.setProperty("color", "var(--bs-warning)");
+            drivePushButtHead.innerHTML = "Request timed out";
+        }
+        else if(result == 2){
+            drivePushButtHead.style.setProperty("color", "var(--bs-danger)");
+            drivePushButtHead.innerHTML = "System unhealthy";
+            clearInterval(autoModeInterval);
+        }
+        else{
+            drivePushButtHead.style.setProperty("color", "var(--bs-success)");
+            drivePushButtHead.innerHTML = "Already in Autonomous Mode";
+            clearInterval(autoModeInterval);
+        }
+    });
 }
 
 manualButt.addEventListener("click", function(){
@@ -95,33 +132,7 @@ autonomyButt.addEventListener("click", function(){
     driveModeButts.hidden = true;
     drivePushButtHead.hidden = false;
     autoModeInterval = setInterval(() => {
-        let request = new ROSLIB.ServiceRequest({
-            string: "onboard_interface",
-            bool: true,
-        });
-        
-        automodeClient.callService(request, function(result) {
-            drivePushButtHead.classList.remove("blink_me");
-            console.log(result);
-            if(result == 0){
-                drivePushButtHead.style.setProperty("color", "var(--bs-black)");
-                drivePushButtHead.innerHTML = "Requesting Autonomous Mode...";
-            }
-            else if(result == 1){
-                drivePushButtHead.style.setProperty("color", "var(--bs-warning)");
-                drivePushButtHead.innerHTML = "Request timed out";
-            }
-            else if(result == 2){
-                drivePushButtHead.style.setProperty("color", "var(--bs-danger)");
-                drivePushButtHead.innerHTML = "System unhealthy";
-                clearInterval(autoModeInterval);
-            }
-            else{
-                drivePushButtHead.style.setProperty("color", "var(--bs-success)");
-                drivePushButtHead.innerHTML = "Already in Autonomous Mode";
-                clearInterval(autoModeInterval);
-            }
-        });
+        makeAutoModeRequest(true);
     }, 1000);
 });
 

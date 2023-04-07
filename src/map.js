@@ -3,14 +3,46 @@ const ROSLIB = require('roslib');
 
 const map = L.map('mapDiv').setView([36.11, -97.058], 13);
 const tileUrl = 'http://localhost:9154/styles/basic-preview/{z}/{x}/{y}.png'; // path to your MBTiles file
-L.tileLayer(tileUrl, {minZoom: 1, maxZoom: 22}).addTo(map);
+let tilelayer = L.tileLayer(tileUrl, {minZoom: 1, maxZoom: 22}).addTo(map);
+tilelayer.id = -1;
 const defaultIcon = new L.icon({
   iconUrl: '../node_modules/leaflet/dist/images/marker-icon.png',
   iconAnchor: [2, 2],
   popupAnchor: [0, -2]
+  
 });
 
-const markerLayer = L.layerGroup().addTo(map);
+const currentPositionIcon = new L.icon({
+  iconUrl: "./assets/img/gorillamunch.jpg",
+  iconSize: [25, 25],
+  iconAnchor: [12, 12],
+  popupAnchor: [0, -2]
+});
+
+let markerLayer = L.layerGroup().addTo(map);
+
+function mapCurrentPosition(latitude, longitude) {
+  map.eachLayer(function (layer) {
+    if(layer.id == 0){
+      markerLayer.removeLayer(layer);
+    }
+  });
+  let marker = L.marker([latitude, longitude], {icon: currentPositionIcon});
+  marker.id = 0;
+  markerLayer.addLayer(marker);
+}
+
+function removeAllButStartingLayer(keepLayerId){
+  map.eachLayer(function (layer) {
+    if(!layer.id && layer.id != -1 && !keepLayerId.includes(layer.id)){
+      markerLayer.removeLayer(layer);
+    }
+  });
+}
+
+setInterval(function(){
+  mapCurrentPosition(36.11, -97.058);
+}, 1000);
 
 function toDegreesMinutesSeconds(coordinate) {
   let direction = 0;
@@ -27,21 +59,24 @@ function toDegreesMinutesSeconds(coordinate) {
 }
 
 const savedMarkers = JSON.parse(localStorage.getItem('markers'));
+console.log(savedMarkers)
 if (savedMarkers) {
   savedMarkers.forEach(markerData => {
-    const marker = L.marker([markerData.lat, markerData.lng], {icon: defaultIcon});
-    markerLayer.addLayer(marker);
-    let latDMS = toDegreesMinutesSeconds(markerData.lat);
-    document.getElementById('latDegIn').value = latDMS[0];
-    document.getElementById('latMinIn').value = latDMS[1];
-    document.getElementById('latSecIn').value = latDMS[2];
-    document.getElementById('latDirectIn').selectedIndex = latDMS[3];
+    if(markerData){
+      const marker = L.marker([markerData.lat, markerData.lng], {icon: defaultIcon});
+      markerLayer.addLayer(marker);
+      let latDMS = toDegreesMinutesSeconds(markerData.lat);
+      document.getElementById('latDegIn').value = latDMS[0];
+      document.getElementById('latMinIn').value = latDMS[1];
+      document.getElementById('latSecIn').value = latDMS[2];
+      document.getElementById('latDirectIn').selectedIndex = latDMS[3];
 
-    let longDMS = toDegreesMinutesSeconds(markerData.lng);
-    document.getElementById('longDegIn').value = longDMS[0];
-    document.getElementById('longMinIn').value = longDMS[1];
-    document.getElementById('longSecIn').value = longDMS[2];
-    document.getElementById('longDirectIn').selectedIndex = longDMS[3];
+      let longDMS = toDegreesMinutesSeconds(markerData.lng);
+      document.getElementById('longDegIn').value = longDMS[0];
+      document.getElementById('longMinIn').value = longDMS[1];
+      document.getElementById('longSecIn').value = longDMS[2];
+      document.getElementById('longDirectIn').selectedIndex = longDMS[3];
+    }
   });
 }
 const savedHeading = JSON.parse(localStorage.getItem('heading'));
@@ -53,22 +88,24 @@ if (savedHeading) {
 }
 
 function saveMarkers() {
-  // Extract marker data from layer group
-  const markers = markerLayer.getLayers().map(marker => {
-    return {
-      lat: marker.getLatLng().lat,
-      lng: marker.getLatLng().lng
-    }
-  });
-  // Save marker data to local storage
-  localStorage.setItem('markers', JSON.stringify(markers));
-  localStorage.setItem('heading', JSON.stringify(document.getElementById('poleCenter').style.transform));
-  localStorage.setItem('headingNum', JSON.stringify(document.getElementById('heading').innerHTML));
+  if(markerLayer.getLayers().length > 1){
+    // Extract marker data from layer group
+    const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("gorilla")).map(marker => {
+        return {
+          lat: marker.getLatLng().lat,
+          lng: marker.getLatLng().lng
+        }
+    });
+    // Save marker data to local storage
+    localStorage.setItem('markers', JSON.stringify(markers));
+    localStorage.setItem('heading', JSON.stringify(document.getElementById('poleCenter').style.transform));
+    localStorage.setItem('headingNum', JSON.stringify(document.getElementById('heading').innerHTML));
+  }
 }
 
 
 map.on('click', function(e) {
-  markerLayer.clearLayers();
+  removeAllButStartingLayer([0]);
   L.marker(e.latlng, {icon: defaultIcon}).addTo(markerLayer);
 
   let latDMS = toDegreesMinutesSeconds(e.latlng.lat);
@@ -86,7 +123,7 @@ map.on('click', function(e) {
 });
 
 function addMarker(){
-  markerLayer.clearLayers();
+  removeAllButStartingLayer([0]);
 
   let latDeg = Number(document.getElementById('latDegIn').value);
   let latMin = Number(document.getElementById('latMinIn').value);
@@ -116,32 +153,31 @@ document.getElementById('setDestinationButton').onclick = function(){
   addMarker();
   console.log(heading);
   saveMarkers();
-  let mark = markerLayer.getLayers().map(marker => {
-    return {
-      lat: marker.getLatLng().lat,
-      lng: marker.getLatLng().lng
-    }
-  });
+  // let mark = markerLayer.getLayers().map(marker => {
+  //   return {
+  //     lat: marker.getLatLng().lat,
+  //     lng: marker.getLatLng().lng
+  //   }
+  // });
   heading = document.getElementById('heading').innerHTML.replace('°', '');
   headingRadians = heading * Math.PI / 180;
 };
 
-
 const { transformCoordsClient, transformedCoords_publisher } = require('./allDaRos');
 function doLatLongTransform(){
-  const marker = markerLayer.getLayers().map(marker => {
+  const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("gorilla")).map(marker => {
     return {
       lat: marker.getLatLng().lat,
       lng: marker.getLatLng().lng
     }
-  });
-  console.log(`Marker Coords: ${marker[0].lat},  ${marker[0].lng}`)
+});
+  console.log(`Marker Coords: ${markers[0].lat},  ${markers[0].lng}`)
 
 
   let request = new ROSLIB.ServiceRequest({
     ll_point: {
-      latitude: marker[0].lat,
-      longitude: marker[0].lng,
+      latitude: markers[0].lat,
+      longitude: markers[0].lng,
       altitude: 0
     }
   });
@@ -172,7 +208,7 @@ function doLatLongTransform(){
 });
 }
 
-document.getElementById('status').onclick = function(){
+ document.getElementById("confirmButt").onclick = function(){
   doLatLongTransform();
 };
 
