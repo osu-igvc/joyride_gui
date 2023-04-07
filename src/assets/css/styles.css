@@ -3,18 +3,6 @@
   width: 100%;
 }
 
-.trapezoid {
-  width: 90%;
-  height: 90%;
-  background: white;
-  transform: perspective(10px) rotateX(1deg);
-  margin: auto;
-  border: solid;
-  border-width: thick;
-  /*border-bottom: rgba(255,255,255,0);*/
-  border-color: black;
-}
-
 body {
   overflow: hidden;
 }
@@ -73,6 +61,10 @@ body {
   margin: 5% 0%;
   background-color: var(--bs-white);
   box-shadow: 1px 1px 5px 0px;
+}
+
+#navTime{
+  color: var(--bs-black);
 }
 
 .shadowyEdge {

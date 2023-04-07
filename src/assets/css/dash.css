@@ -1,0 +1,37 @@
+#expectedSpeedTick {
+  transform-origin: 50px 54px;
+  transform: rotate(30deg);
+  transition-duration: 0.4s;
+  fill: var(--bs-orange);
+  stroke-width: 1px;
+  stroke: black;
+}
+
+#actualRightWheelSVG {
+  transform-box: fill-box;
+  transform: translate(0%, -112%) rotate(0deg);
+  transform-origin: center center;
+  transition-duration: 0.3s;
+}
+
+#expectedRightWheelSVG {
+  transform-box: fill-box;
+  transform: translate(0%, -112%) rotate(0deg);
+  transform-origin: center center;
+  transition-duration: 0.3s;
+}
+
+#actualLeftWheelSVG {
+  transform-box: fill-box;
+  transform: translate(0%, -112%) rotate(0deg);
+  transform-origin: center center;
+  transition-duration: 0.3s;
+}
+
+#expectedLeftWheelSVG {
+  transform-box: fill-box;
+  transform: translate(0%, -112%) rotate(0deg);
+  transform-origin: center center;
+  transition-duration: 0.3s;
+}
+

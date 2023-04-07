@@ -55,10 +55,6 @@
   border-radius: 50%;
 }
 
-#navTime {
-  color: var(--bs-black);
-}
-
 #compassSVG {
   height: 100%;
   width: 100%;

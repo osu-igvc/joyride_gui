@@ -1,11 +1,20 @@
+.blink_me {
+    animation: blinker 1.25s linear infinite;
+}
+  
+@keyframes blinker {
+    50% {
+        opacity: 0.1;
+    }
+}
+
 #steeringAngle {
-  transform: rotate(0deg);
-  transition-duration: 0.3s;
+    transform: rotate(0deg);
+    transition-duration: 0.3s;
 }
-
+  
 #speedTick {
-  transform-origin: 50px 54px;
-  transform: rotate(-30deg);
-  transition-duration: 0.4s;
+    transform-origin: 50px 54px;
+    transform: rotate(-30deg);
+    transition-duration: 0.4s;
 }
-

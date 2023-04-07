@@ -38,6 +38,26 @@ const driveByWire_listener = new ROSLIB.Topic({
     messageType: "joyride_interfaces/msg/DriveByWireSystemInfo"
 });
 
+// Map stuff
+const transformedCoords_publisher = new ROSLIB.Topic({
+    ros: ros,
+    name: '/goal_pose',
+    messageType: 'geometry_msgs/PoseStamped'
+  });
+
+const transformCoordsClient = new ROSLIB.Service({
+    ros: ros,
+    name: '/fromLL',
+    serviceType: 'robot_localization/FromLL'
+  });
+
+// Automode stuff
+const automodeClient = new ROSLIB.Service({
+    ros: ros,
+    name: '/requestAutoEnableDisable',
+    serviceType: 'joyride_interfaces/srv/RequestAutoEnableDisable'
+});
+
 module.exports = {
     accessoriesGEMFeedback_listener: accessoriesGEMFeedback_listener,
     ros: ros,
@@ -45,7 +65,10 @@ module.exports = {
     steeringAngle_listener: steeringAngle_listener,
     wheelSpeed_listener: wheelSpeed_listener,
     diagnosticMessages_listener: diagnosticMessages_listener,
-    driveByWire_listener: driveByWire_listener
+    driveByWire_listener: driveByWire_listener,
+    transformedCoords_publisher: transformedCoords_publisher,
+    transformCoordsClient: transformCoordsClient,
+    automodeClient: automodeClient
 }
 
 

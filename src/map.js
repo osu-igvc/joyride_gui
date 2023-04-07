@@ -126,12 +126,8 @@ document.getElementById('setDestinationButton').onclick = function(){
   headingRadians = heading * Math.PI / 180;
 };
 
-const transformedCoords_publisher = new ROSLIB.Topic({
-  ros: ros,
-  name: '/goal_pose',
-  messageType: 'geometry_msgs/PoseStamped'
-});
 
+const { transformCoordsClient, transformedCoords_publisher } = require('./allDaRos');
 function doLatLongTransform(){
   const marker = markerLayer.getLayers().map(marker => {
     return {
@@ -141,11 +137,6 @@ function doLatLongTransform(){
   });
   console.log(`Marker Coords: ${marker[0].lat},  ${marker[0].lng}`)
 
-  const transformCoordsClient = new ROSLIB.Service({
-    ros: ros,
-    name: '/fromLL',
-    serviceType: 'robot_localization/FromLL'
-  });
 
   let request = new ROSLIB.ServiceRequest({
     ll_point: {
