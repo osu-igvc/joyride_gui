@@ -34,6 +34,11 @@ function updateExpectedSteeringAngle(angle){
   document.getElementById("expectedRightWheelSVG").style.transform = `translate(0%, -112%) rotate(${angleDeg}deg)`;
 }
 
+function updateHeader(head){
+  document.getElementById("speedValue-2").innerHTML = head;
+  document.getElementById("dashPoleCenter").style.transform = `rotate(${head}deg)`;
+}
+
 const { steeringAngle_listener, wheelSpeed_listener } = require('./allDaRos.js');
 
 steeringAngle_listener.subscribe((message) => {

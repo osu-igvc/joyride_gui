@@ -58,6 +58,20 @@ const automodeClient = new ROSLIB.Service({
     serviceType: 'joyride_interfaces/srv/RequestAutoEnableDisable'
 });
 
+const navSatFix_listener = new ROSLIB.Topic({
+    ros: ros,
+    name: "/vectornav/gnss",
+    messageType: "sensor_msgs/NavSatFix"
+});
+
+const gps_listener = new ROSLIB.Topic({
+    ros: ros,
+    name: "/vectornav/raw/gps",
+    messageType: "joyride_sensors/vectornav/vectornav_msgs/msg/GpsGroup"
+})
+
+
+
 module.exports = {
     accessoriesGEMFeedback_listener: accessoriesGEMFeedback_listener,
     ros: ros,
@@ -68,7 +82,9 @@ module.exports = {
     driveByWire_listener: driveByWire_listener,
     transformedCoords_publisher: transformedCoords_publisher,
     transformCoordsClient: transformCoordsClient,
-    automodeClient: automodeClient
+    automodeClient: automodeClient,
+    navSatFix_listener: navSatFix_listener,
+    gps_listener: gps_listener
 }
 
 

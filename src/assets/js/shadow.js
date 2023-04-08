@@ -14,12 +14,21 @@ let driveHead = document.getElementById("driveModeCountdown");
 
 let countdown = null;
 let count = 5;
-drivePushButtHead.classList.add("blink_me");
 
 let autoModeInterval = null;
 
 const ROSLIB = require('roslib');
 const { automodeClient } = require('./allDaRos');
+
+let isEnableReady = false;
+let isAutoButtonPressed = false;
+let currentDriveMode = "Manual";
+
+//declared in navbarStuff.js
+driveByWire_listener.subscribe(function(message) {
+    isEnableReady = message.enable_ready;
+    isAutoButtonPressed = message.auto_button_pressed;
+});
 
 toggleDriveModeButt.onclick = () => {
     driveHead.hidden = true;
@@ -28,6 +37,17 @@ toggleDriveModeButt.onclick = () => {
     if (countdown){
         clearInterval(countdown);
     }
+    if (autoModeInterval){
+        clearInterval(autoModeInterval);
+    }
+    if(currentDriveMode == "Manual"){
+        shadowCanvasUtil.show();
+        shadowCanvasUtil.hidden = false;
+    }
+    else{
+        makeAutoModeDisableRequest();
+    }
+    
 }
 
 document.getElementById("driveModeCancelButt").onclick = () => {
@@ -40,29 +60,33 @@ document.getElementById("driveModeCancelButt").onclick = () => {
     if (autoModeInterval){
         clearInterval(autoModeInterval);
     }
+    currentDriveMode = "Manual";
 }
 
 function changeToggleButton(currentMode){
+    shadowCanvasUtil.hidden = true;
+    shadowCanvasUtil.hide();
     toggleDriveModeButt.innerHTML = `Exit ${currentMode} Mode`;
 }
 
-
-function makeAutoModeRequest(enableDisable){
+function makeAutoModeEnableRequest(driveMode){
     let request = new ROSLIB.ServiceRequest({
         string: "onboard_interface",
-        bool: enableDisable,
+        bool: true,
     });
 
     automodeClient.callService(request, function(result) {
-        drivePushButtHead.classList.remove("blink_me");
         console.log(result);
         if(result == 0){
             drivePushButtHead.style.setProperty("color", "var(--bs-black)");
-            drivePushButtHead.innerHTML = "Requesting Autonomous Mode...";
+            drivePushButtHead.innerHTML = "Press Automode Button";
+            drivePushButtHead.classList.add("blink_me");
+            currentDriveMode = driveMode;
+            clearInterval(autoModeInterval);
         }
         else if(result == 1){
             drivePushButtHead.style.setProperty("color", "var(--bs-warning)");
-            drivePushButtHead.innerHTML = "Request timed out";
+            drivePushButtHead.innerHTML = "Request timed out. Trying again...";
         }
         else if(result == 2){
             drivePushButtHead.style.setProperty("color", "var(--bs-danger)");
@@ -72,7 +96,36 @@ function makeAutoModeRequest(enableDisable){
         else{
             drivePushButtHead.style.setProperty("color", "var(--bs-success)");
             drivePushButtHead.innerHTML = "Already in Autonomous Mode";
+            currentMode = driveMode;
             clearInterval(autoModeInterval);
+        }
+    });
+}
+
+function makeAutoModeDisableRequest(){
+    let request = new ROSLIB.ServiceRequest({
+        string: "onboard_interface",
+        bool: false,
+    });
+
+    automodeClient.callService(request, function(result) {
+        console.log(result);
+        if(result == 0 || result == 3){
+            toggleDriveModeButt.innerHTML = "Toggle Drive Mode";
+            currentDriveMode = "Manual";
+            toggleDriveModeButt.style.backgroundColor = "var(--bs-black)";
+        }
+        else if(result == 1){
+            toggleDriveModeButt.innerHTML = "Request timed out. Trying again...";
+            toggleDriveModeButt.style.backgroundColor = "var(--bs-warning)";
+        }
+        else if(result == 2){
+            toggleDriveModeButt.innerHTML = "System unhealthy?";
+            toggleDriveModeButt.style.backgroundColor = "var(--bs-danger)";
+        }
+        else{
+            toggleDriveModeButt.innerHTML = "Got value other than 0 - 3???";;
+            toggleDriveModeButt.style.backgroundColor = "var(--bs-danger)";
         }
     });
 }
@@ -80,6 +133,7 @@ function makeAutoModeRequest(enableDisable){
 manualButt.addEventListener("click", function(){
     driveImg.src = "./assets/img/DriveMode/driveModeManual.svg";
     shadowCanvasUtil.hide();
+    document.getElementById("toggleDriveModeButt").innerHTML = "Toggle Drive Mode";
 });
 
 function joystickCountdown(){
@@ -104,13 +158,19 @@ function joystickCountdown(){
 
 joystickButt.addEventListener("click", function(){
     driveModeButts.hidden = true;
+    driveHead.hidden = true;
+    drivePushButtHead.classList.remove("blink_me");
+    drivePushButtHead.innerHTML = "Making request...";
     drivePushButtHead.hidden = false;
+    autoModeInterval = setInterval(() => {
+        makeAutoModeRequest("Joystick");
+    }, 3000);
 });
 
 function autonomyCountdown(){
     count = 5;
     driveModeButts.hidden = true;
-
+    drivePushButtHead.hidden = false;
     driveHead.innerHTML = `Autonomous Control Begins in ${count}`;
     driveHead.hidden = false;
     countdown = setInterval(() => {
@@ -130,11 +190,30 @@ function autonomyCountdown(){
 
 autonomyButt.addEventListener("click", function(){
     driveModeButts.hidden = true;
+    driveHead.hidden = true;
+    drivePushButtHead.classList.remove("blink_me");
+    drivePushButtHead.innerHTML = "Making request...";
     drivePushButtHead.hidden = false;
     autoModeInterval = setInterval(() => {
-        makeAutoModeRequest(true);
-    }, 1000);
+        makeAutoModeEnableRequest("Autonomy");
+    }, 3000);
 });
 
-
-  
+if(isEnableReady && isAutoButtonPressed){
+    if(currentDriveMode == "Autonomy"){
+        changeToggleButton("Autonomy");
+        driveImg.src = "./assets/img/DriveMode/driveModeAutonomy.svg";
+        driveImg.classList.add("bounce_me");
+        setTimeout(function(){
+            driveImg.classList.remove("bounce_me");
+        }, 1000);
+    }
+    else if(currentDriveMode == "Joystick"){
+        changeToggleButton("Joystick");
+        driveImg.src = "./assets/img/DriveMode/driveModeJoystick.svg";
+        driveImg.classList.add("bounce_me");
+        setTimeout(function(){
+            driveImg.classList.remove("bounce_me");
+        }, 1000);
+    }
+}

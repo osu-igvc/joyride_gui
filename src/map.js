@@ -7,8 +7,8 @@ let tilelayer = L.tileLayer(tileUrl, {minZoom: 1, maxZoom: 22}).addTo(map);
 tilelayer.id = -1;
 const defaultIcon = new L.icon({
   iconUrl: '../node_modules/leaflet/dist/images/marker-icon.png',
-  iconAnchor: [2, 2],
-  popupAnchor: [0, -2]
+  iconAnchor: [10, 10],
+  popupAnchor: [0, 0],
   
 });
 
@@ -18,6 +18,53 @@ const currentPositionIcon = new L.icon({
   iconAnchor: [12, 12],
   popupAnchor: [0, -2]
 });
+
+let centerMapOnCurrentPositionButton = document.createElement('div');
+let mapDiv = document.getElementById("mapDiv");
+mapDiv.style.position = "relative";
+centerMapOnCurrentPositionButton.innerHTML = "<button class='btn btn-primary' type='button' enabled>8=></button>";
+centerMapOnCurrentPositionButton.style.position = "absolute";
+centerMapOnCurrentPositionButton.style.top = "10px";
+centerMapOnCurrentPositionButton.style.right = "10px";
+centerMapOnCurrentPositionButton.style.zIndex = "1000";
+centerMapOnCurrentPositionButton.addEventListener("click", function(event){
+  event.stopPropagation();
+  map.setView(currentPosition, map.getZoom());
+});
+
+keepCenteringOnCurrentPositionButton = document.createElement('div');
+keepCenteringOnCurrentPositionButton.innerHTML = "<button class='btn btn-primary' type='button' enabled>80085</button>";
+keepCenteringOnCurrentPositionButton.style.position = "absolute";
+keepCenteringOnCurrentPositionButton.style.top = "62px";
+keepCenteringOnCurrentPositionButton.style.right = "10px";
+keepCenteringOnCurrentPositionButton.style.zIndex = "1000";
+
+let keepCenteringOnCurrentPosition = null;
+let isDragging = false;
+keepCenteringOnCurrentPositionButton.addEventListener("click", function(event){
+  event.stopPropagation();
+  if(!keepCenteringOnCurrentPosition){
+    keepCenteringOnCurrentPosition = setInterval(() => {
+      if(!isDragging){
+        map.setView(currentPosition, map.getZoom());
+      }
+    }, 1000);
+  } else {
+    clearInterval(keepCenteringOnCurrentPosition);
+    keepCenteringOnCurrentPosition = null;
+  }
+});
+
+mapDiv.appendChild(centerMapOnCurrentPositionButton);
+mapDiv.appendChild(keepCenteringOnCurrentPositionButton);
+
+map.addEventListener("dragstart", function(event){
+  isDragging = true;
+});
+map.addEventListener("dragend", function(event){
+  isDragging = false;
+});
+
 
 let markerLayer = L.layerGroup().addTo(map);
 
@@ -40,8 +87,17 @@ function removeAllButStartingLayer(keepLayerId){
   });
 }
 
+let currentPosition = [36.11, -97.058];
+let currentDestination;
+
+navSatFix_listener.subscribe(function(message) {
+  if(message.latitude && message.longitude){
+    currentPosition = [message.latitude, message.longitude];
+  }
+});
+
 setInterval(function(){
-  mapCurrentPosition(36.11, -97.058);
+  mapCurrentPosition(currentPosition[0], currentPosition[1]);
 }, 1000);
 
 function toDegreesMinutesSeconds(coordinate) {
@@ -63,6 +119,7 @@ console.log(savedMarkers)
 if (savedMarkers) {
   savedMarkers.forEach(markerData => {
     if(markerData){
+      currentDestination = [markerData.lat, markerData.lng];
       const marker = L.marker([markerData.lat, markerData.lng], {icon: defaultIcon});
       markerLayer.addLayer(marker);
       let latDMS = toDegreesMinutesSeconds(markerData.lat);
@@ -107,6 +164,7 @@ function saveMarkers() {
 map.on('click', function(e) {
   removeAllButStartingLayer([0]);
   L.marker(e.latlng, {icon: defaultIcon}).addTo(markerLayer);
+  currentDestination = [e.latlng.lat, e.latlng.lng];
 
   let latDMS = toDegreesMinutesSeconds(e.latlng.lat);
   document.getElementById('latDegIn').value = latDMS[0];
@@ -147,20 +205,39 @@ function addMarker(){
   L.marker([latDecDeg, longDecDeg], {icon: defaultIcon}).addTo(markerLayer);
 }
 
+function getDistanceToMarker(lat1, lon1, lat2, lon2){
+  const deg2rad = 3.14159/180.0;
+  lat1 = lat1*deg2rad;
+  lat2 = lat2*deg2rad;
+  lon1 = lon1*deg2rad;
+  lon2 = lon2*deg2rad;
+  const R = 6371;
+  const dLat = lat2-lat1;
+  const dLon = lon2-lon1;
+  let temp = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon/2) * Math.sin(dLon/2);
+  temp = 2 * Math.atan2(Math.sqrt(temp), Math.sqrt(1-temp));
+
+  return R * temp * 1609.34;
+}
+
 let heading = document.getElementById('heading').innerHTML.replace('°', '');
 let headingRadians = heading * Math.PI / 180;
+let straightLineDistance = null;
 document.getElementById('setDestinationButton').onclick = function(){
   addMarker();
   console.log(heading);
   saveMarkers();
-  // let mark = markerLayer.getLayers().map(marker => {
-  //   return {
-  //     lat: marker.getLatLng().lat,
-  //     lng: marker.getLatLng().lng
-  //   }
-  // });
+
+  if(straightLineDistance){
+    map.removeLayer(straightLineDistance);
+  }
+
+  straightLineDistance = L.polyline([currentPosition, currentDestination], { color: 'blue' }).addTo(map);
+  
   heading = document.getElementById('heading').innerHTML.replace('°', '');
   headingRadians = heading * Math.PI / 180;
+
+  document.getElementById('distanceToDestination').innerHTML = getDistanceToMarker(currentPosition[0], currentPosition[1], currentDestination[0], currentDestination[1]).toFixed(2);
 };
 
 const { transformCoordsClient, transformedCoords_publisher } = require('./allDaRos');
@@ -215,14 +292,10 @@ function doLatLongTransform(){
 
 // [lat 36, 6, 58.5000++, N], [lng 96, 59, 52.669 W]
 
-// const myPolyline = L.polyline([], { color: 'red' }).addTo(map);
-// let latDeg = 36.11625;
-// let longDeg = -96.997964;
+const myPolyline = L.polyline([], { color: 'red' }).addTo(map);
+
 // setInterval(function(){
-//   latDeg += 0.00005;
-//   longDeg += (Math.random() * 0.00003) - 0.00001;
-//   // longDeg += Math.random() * 0.000001;
-//   const latLng = L.latLng(latDeg, longDeg);
+//   const latLng = L.latLng(currentPosition[0], currentPosition[1]);
 //   myPolyline.addLatLng(latLng);
-// }, 500);
+// }, 1000);
 
