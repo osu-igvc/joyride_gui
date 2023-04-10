@@ -107,12 +107,24 @@ function headHighLightBeamOnOff(timeForHead, timeForHigh){
     headHigh.src = "./assets/img/head.svg";
   }
 }
+let seatbelt = "disconnected";
 function seatbeltOnOff(isSeatbelt){
-  document.getElementById("seatBeltIcon").style.setProperty("--color1", isSeatbelt ? 'var(--bs-green)' : 'var(--bs-red)');
-  document.getElementById("seatBeltIcon").classList.add("bounce_me");
-  setTimeout(function(){
-    document.getElementById("seatBeltIcon").classList.remove("bounce_me");
-  }, 1000);
+  if(seatbelt != "connected" && isSeatbelt){
+    document.getElementById("seatBeltIcon").style.setProperty("--color1", 'var(--bs-green)');
+    document.getElementById("seatBeltIcon").classList.add("bounce_me");
+    setTimeout(function(){
+      document.getElementById("seatBeltIcon").classList.remove("bounce_me");
+    }, 1000);
+    seatbelt = "connected";
+  }
+  if(seatbelt != "disconnected" && !isSeatbelt){
+    document.getElementById("seatBeltIcon").style.setProperty("--color1", 'var(--bs-red)');
+    document.getElementById("seatBeltIcon").classList.add("bounce_me");
+    setTimeout(function(){
+      document.getElementById("seatBeltIcon").classList.remove("bounce_me");
+    }, 1000);
+    seatbelt = "disconnected";
+  }
 }
 
 function heatedSeatsOnOff(){

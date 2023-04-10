@@ -2,8 +2,8 @@
 function updateSteeringAngle(angle){
   let angleDeg = Math.round(angle * 180/Math.PI);
   let angleRad = angle.toFixed(2);
-  document.getElementById("steerValue").innerHTML = -angleDeg.toString() + '°' + ", " + -angleRad + " rads";
-  document.getElementById("steeringAngleDiv").style.transform = 'rotate('+ angleDeg + 'deg)'
+  document.getElementById("steerValue").innerHTML = angleDeg.toString() + '°' + ", " + angleRad + " rads";
+  document.getElementById("steeringAngleDiv").style.transform = 'rotate('+ -angleDeg + 'deg)'
 }
 
 function updateSpeed(speed){
@@ -43,6 +43,7 @@ const { steeringAngle_listener, wheelSpeed_listener } = require('./allDaRos.js')
 
 steeringAngle_listener.subscribe((message) => {
   updateSteeringAngle(message.position_radians);
+  updateActualSteeringAngle(message.position_radians/25.49);
 });
 
 wheelSpeed_listener.subscribe((message) => {
@@ -50,12 +51,12 @@ wheelSpeed_listener.subscribe((message) => {
 });
 
 
-document.getElementById("seatBeltIcon").addEventListener("click", () => {
-  updateActualSteeringAngle(Math.random() * Math.PI/2 - Math.PI/4);
-  updateExpectedSteeringAngle(Math.random() * Math.PI/2 - Math.PI/4);
-  updateExpectedSpeed(Math.random() * 10);
-  updateSpeed(Math.random() * 10);
-});
+// document.getElementById("seatBeltIcon").addEventListener("click", () => {
+//   updateActualSteeringAngle(Math.random() * Math.PI/2 - Math.PI/4);
+//   updateExpectedSteeringAngle(Math.random() * Math.PI/2 - Math.PI/4);
+//   updateExpectedSpeed(Math.random() * 10);
+//   updateSpeed(Math.random() * 10);
+// });
 
 
 

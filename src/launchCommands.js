@@ -16,3 +16,7 @@ cbt.onclick = () => {
         }
     }, 1000);
 }
+
+// document.body.addEventListener("click", function(){
+//     document.getElementById("status").focus();
+// });

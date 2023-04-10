@@ -70,6 +70,12 @@ const gps_listener = new ROSLIB.Topic({
     messageType: "joyride_sensors/vectornav/vectornav_msgs/msg/GpsGroup"
 })
 
+const compressedImage_listener = new ROSLIB.Topic({
+    ros: ros,
+    name: "/sensors/cameras/center/image/compressed",
+    messageType: "sensor_msgs/CompressedImage"
+});
+
 
 
 module.exports = {
@@ -84,7 +90,8 @@ module.exports = {
     transformCoordsClient: transformCoordsClient,
     automodeClient: automodeClient,
     navSatFix_listener: navSatFix_listener,
-    gps_listener: gps_listener
+    gps_listener: gps_listener,
+    compressedImage_listener: compressedImage_listener
 }
 
 

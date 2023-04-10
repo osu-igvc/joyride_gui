@@ -22,7 +22,7 @@ const currentPositionIcon = new L.icon({
 let centerMapOnCurrentPositionButton = document.createElement('div');
 let mapDiv = document.getElementById("mapDiv");
 mapDiv.style.position = "relative";
-centerMapOnCurrentPositionButton.innerHTML = "<button class='btn btn-primary' type='button' enabled>8=></button>";
+centerMapOnCurrentPositionButton.innerHTML = "<button class='btn btn-primary' type='button' enabled>Center Map</button>";
 centerMapOnCurrentPositionButton.style.position = "absolute";
 centerMapOnCurrentPositionButton.style.top = "10px";
 centerMapOnCurrentPositionButton.style.right = "10px";
@@ -33,7 +33,7 @@ centerMapOnCurrentPositionButton.addEventListener("click", function(event){
 });
 
 keepCenteringOnCurrentPositionButton = document.createElement('div');
-keepCenteringOnCurrentPositionButton.innerHTML = "<button class='btn btn-primary' type='button' enabled>80085</button>";
+keepCenteringOnCurrentPositionButton.innerHTML = "<div class='btn-group-toggle' data-toggle='buttons'><label class='btn btn-secondary active'><input type='checkbox' autocomplete='off'> Follow</label></div>";
 keepCenteringOnCurrentPositionButton.style.position = "absolute";
 keepCenteringOnCurrentPositionButton.style.top = "62px";
 keepCenteringOnCurrentPositionButton.style.right = "10px";
@@ -42,9 +42,11 @@ keepCenteringOnCurrentPositionButton.style.zIndex = "1000";
 let keepCenteringOnCurrentPosition = null;
 let isDragging = false;
 keepCenteringOnCurrentPositionButton.addEventListener("click", function(event){
+  console.log("Clicked");
   event.stopPropagation();
   if(!keepCenteringOnCurrentPosition){
     keepCenteringOnCurrentPosition = setInterval(() => {
+      console.log("Centering");
       if(!isDragging){
         map.setView(currentPosition, map.getZoom());
       }

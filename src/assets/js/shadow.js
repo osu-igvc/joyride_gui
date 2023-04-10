@@ -70,25 +70,26 @@ function changeToggleButton(currentMode){
 }
 
 function makeAutoModeEnableRequest(driveMode){
+    drivePushButtHead.style.setProperty("color", "var(--bs-black)");
     let request = new ROSLIB.ServiceRequest({
-        string: "onboard_interface",
-        bool: true,
+        sender_name: "onboard_interface",
+        set_auto_enabled: true,
     });
 
     automodeClient.callService(request, function(result) {
-        console.log(result);
-        if(result == 0){
+        let maxSucks = result.response;
+        if(maxSucks == 0){
             drivePushButtHead.style.setProperty("color", "var(--bs-black)");
             drivePushButtHead.innerHTML = "Press Automode Button";
             drivePushButtHead.classList.add("blink_me");
             currentDriveMode = driveMode;
             clearInterval(autoModeInterval);
         }
-        else if(result == 1){
+        else if(maxSucks == 1){
             drivePushButtHead.style.setProperty("color", "var(--bs-warning)");
             drivePushButtHead.innerHTML = "Request timed out. Trying again...";
         }
-        else if(result == 2){
+        else if(maxSucks == 2){
             drivePushButtHead.style.setProperty("color", "var(--bs-danger)");
             drivePushButtHead.innerHTML = "System unhealthy";
             clearInterval(autoModeInterval);
