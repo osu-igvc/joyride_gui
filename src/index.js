@@ -1,4 +1,5 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
+const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
@@ -104,6 +105,125 @@ log_listener.subscribe((message) => {
   })
   win.webContents.send('logData', `${convertSecondstoTime(messageTimeStamp)}> ${String(messageLabel)} ${String(message.msg)}\n`);
 });
+
+
+// let rosLaunchTest;
+// ipcMain.handle('launch-ros', async (event) => {
+//   rosLaunchTest = spawn("ros2", ["launch", "rosbridge_server", "rosbridge_websocket_launch.xml", "port:=9190"]);
+//   let output = '';
+//   rosLaunchTest.stdout.on('data', (data) => {
+//     output += data;
+//   });
+//   rosLaunchTest.stderr.on('data', (data) => {
+//     output += data;
+//   });
+//   await new Promise((resolve) => {
+//     rosLaunchTest.on('exit', (code) => {
+//       output += `rosbridge process exited with code ${code}`;
+//       resolve();
+//     });
+//   });
+//   return output;
+// });
+
+// ipcMain.handle('kill-ros', async (event) => {
+//   let output = '';
+//   rosLaunchTest.kill("SIGINT");
+//   await new Promise((resolve) => {
+//     rosLaunchTest.on('exit', (code) => {
+//       output += `rosbridge process exited with code ${code}`;
+//       resolve();
+//     });
+//   });
+//   return output;
+// });
+
+// ipcMain.handle("ros-status", async (event) => {
+//   if (rosLaunchTest && rosLaunchTest.exitCode === null) {
+//     return true;
+//   } else {
+//     return false;
+//   }
+// });
+
+const rosProcesses = {};
+
+ipcMain.handle('launch-ros', async (event, launchConfig) => {
+  const { id, spawn_args } = launchConfig;
+  let args_list = spawn_args.split(", ");
+  let command = args_list.shift();
+  const rosLaunch = spawn(command, args_list);
+
+  rosLaunch.on('error', (error) => {
+    console.error(`Error in ROS process ${id}:`, error);
+  });
+
+  rosLaunch.on('close', (code, signal) => {
+    delete rosProcesses[id];
+  });
+
+  rosProcesses[id] = rosLaunch;
+  let output = '';
+  rosLaunch.stdout.on('data', (data) => {
+    output += data;
+  });
+  rosLaunch.stderr.on('data', (data) => {
+    output += data;
+  });
+  await new Promise((resolve) => {
+    rosLaunch.on('exit', (code) => {
+      output += `Process exited with code ${code}`;
+      resolve();
+    });
+  });
+  return output;
+});
+
+ipcMain.handle('kill-ros', async (event, id) => {
+  const rosLaunch = rosProcesses[id];
+  if (rosLaunch) {
+    let output = '';
+    try {
+      rosLaunch.kill("SIGINT");
+    } catch (error) {
+      console.error(`Error while killing ROS process ${id}:`, error);
+    }
+    await new Promise((resolve) => {
+      rosLaunch.on('exit', (code) => {
+        output += `Process exited with code ${code}`;
+        resolve();
+      });
+    });
+    return output;
+  }
+});
+
+ipcMain.handle("ros-status", async (event, id) => {
+  const rosLaunch = rosProcesses[id];
+  if (rosLaunch && rosLaunch.exitCode === null) {
+    return true;
+  } else {
+    return false;
+  }
+});
+
+function yeahItsGenocideTime() {
+  for (const id in rosProcesses) {
+    const rosProcess = rosProcesses[id];
+    if (rosProcess && rosProcess.exitCode === null) {
+      try {
+        rosProcess.kill('SIGINT');
+      } catch (error) {
+        console.error(`Error while killing ROS process ${id}:`, error);
+      }
+    }
+  }
+}
+
+app.on('before-quit', () => {
+  yeahItsGenocideTime();
+});
+
 
 
 

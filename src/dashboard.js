@@ -51,12 +51,12 @@ wheelSpeed_listener.subscribe((message) => {
 });
 
 
-// document.getElementById("seatBeltIcon").addEventListener("click", () => {
-//   updateActualSteeringAngle(Math.random() * Math.PI/2 - Math.PI/4);
-//   updateExpectedSteeringAngle(Math.random() * Math.PI/2 - Math.PI/4);
-//   updateExpectedSpeed(Math.random() * 10);
-//   updateSpeed(Math.random() * 10);
-// });
+document.getElementById("seatBeltIcon").addEventListener("click", () => {
+  updateActualSteeringAngle(Math.random() * Math.PI/2 - Math.PI/4);
+  updateExpectedSteeringAngle(Math.random() * Math.PI/2 - Math.PI/4);
+  updateExpectedSpeed(Math.random() * 10);
+  updateSpeed(Math.random() * 10);
+});
 
 
 
