@@ -69,7 +69,7 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-const { log_listener } = require('./allDaRos.js');
+const { log_listener, ros } = require('./allDaRos.js');
 
 fs.writeFile('./rosLogStuff.txt', '', function(err){if (err) throw err;});
 
@@ -81,10 +81,11 @@ function convertSecondstoTime(seconds) {
 }
 
 
-let messageLabel = '';
 log_listener.subscribe((message) => {
-  let messageTimeStamp = message.stamp.sec;
-  switch (message.level){
+  const messageTimeStamp = message.stamp.sec;
+  let messageLabel;
+
+  switch (message.level) {
     case 20:
       messageLabel = '[INFO]';
       break;
@@ -100,51 +101,16 @@ log_listener.subscribe((message) => {
     default:
       messageLabel = '[DEBUG]';
   }
-  fs.appendFile('./rosLogStuff.txt', `${convertSecondstoTime(messageTimeStamp)}> ${String(messageLabel)} ${String(message.msg)}\n`, function(err){
-      if (err) throw err;
-  })
-  win.webContents.send('logData', `${convertSecondstoTime(messageTimeStamp)}> ${String(messageLabel)} ${String(message.msg)}\n`);
+
+  const logMessage = `${convertSecondstoTime(messageTimeStamp)}> ${messageLabel} ${message.msg}\n`;
+
+  fs.appendFile('./rosLogStuff.txt', logMessage, function(err) {
+    if (err) throw err;
+  });
+
+  win.webContents.send('logData', logMessage);
 });
 
-
-// let rosLaunchTest;
-// ipcMain.handle('launch-ros', async (event) => {
-//   rosLaunchTest = spawn("ros2", ["launch", "rosbridge_server", "rosbridge_websocket_launch.xml", "port:=9190"]);
-//   let output = '';
-//   rosLaunchTest.stdout.on('data', (data) => {
-//     output += data;
-//   });
-//   rosLaunchTest.stderr.on('data', (data) => {
-//     output += data;
-//   });
-//   await new Promise((resolve) => {
-//     rosLaunchTest.on('exit', (code) => {
-//       output += `rosbridge process exited with code ${code}`;
-//       resolve();
-//     });
-//   });
-//   return output;
-// });
-
-// ipcMain.handle('kill-ros', async (event) => {
-//   let output = '';
-//   rosLaunchTest.kill("SIGINT");
-//   await new Promise((resolve) => {
-//     rosLaunchTest.on('exit', (code) => {
-//       output += `rosbridge process exited with code ${code}`;
-//       resolve();
-//     });
-//   });
-//   return output;
-// });
-
-// ipcMain.handle("ros-status", async (event) => {
-//   if (rosLaunchTest && rosLaunchTest.exitCode === null) {
-//     return true;
-//   } else {
-//     return false;
-//   }
-// });
 
 const rosProcesses = {};
 

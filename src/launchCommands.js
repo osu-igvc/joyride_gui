@@ -13,6 +13,8 @@ function changeToKillorLaunch(button, launchName, status) {
   
 function createRosToggleButton(button, launchConfig, statusElement) {
     button.addEventListener("click",  async () => {
+        // button.style.setProperty("pointer-events", "none");
+        button.disabled = true;
       setTimeout(async () => {
         const rosRunning = await ipcRenderer.invoke('ros-status', launchConfig.id);
   
@@ -37,6 +39,8 @@ function createRosToggleButton(button, launchConfig, statusElement) {
   
           changeToKillorLaunch(button, launchConfig.name, "launch");
         }
+        // button.style.setProperty("pointer-events", "auto");
+        button.disabled = false;
       }, 1000);
     });
 }
