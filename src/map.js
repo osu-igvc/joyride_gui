@@ -2,63 +2,56 @@ const L = require('leaflet');
 const ROSLIB = require('roslib');
 
 const map = L.map('mapDiv').setView([36.11, -97.058], 13);
+document.getElementById('mapDiv').classList.remove("placeholder");
 const tileUrl = 'http://localhost:9154/styles/basic-preview/{z}/{x}/{y}.png'; // path to your MBTiles file
 let tilelayer = L.tileLayer(tileUrl, {minZoom: 1, maxZoom: 22}).addTo(map);
 tilelayer.id = -1;
 const defaultIcon = new L.icon({
-  iconUrl: '../node_modules/leaflet/dist/images/marker-icon.png',
-  iconAnchor: [10, 10],
-  popupAnchor: [0, 0],
+  iconUrl: './assets/img/MarkerIcons/red.png',
+  shadowUrl: './assets/img/MarkerIcons/shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
   
 });
 
 const currentPositionIcon = new L.icon({
-  iconUrl: "./assets/img/gorillamunch.jpg",
-  iconSize: [25, 25],
-  iconAnchor: [12, 12],
-  popupAnchor: [0, -2]
+  iconUrl: './assets/img/MarkerIcons/blue.png',
+  shadowUrl: './assets/img/MarkerIcons/shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
 });
 
-let centerMapOnCurrentPositionButton = document.createElement('div');
-let mapDiv = document.getElementById("mapDiv");
-mapDiv.style.position = "relative";
-centerMapOnCurrentPositionButton.innerHTML = "<button class='btn btn-primary' type='button' enabled>Center Map</button>";
-centerMapOnCurrentPositionButton.style.position = "absolute";
-centerMapOnCurrentPositionButton.style.top = "10px";
-centerMapOnCurrentPositionButton.style.right = "10px";
-centerMapOnCurrentPositionButton.style.zIndex = "1000";
-centerMapOnCurrentPositionButton.addEventListener("click", function(event){
+
+document.getElementById("centerMapOnPosition").addEventListener("click", function(event){
   event.stopPropagation();
   map.setView(currentPosition, map.getZoom());
 });
 
-keepCenteringOnCurrentPositionButton = document.createElement('div');
-keepCenteringOnCurrentPositionButton.innerHTML = "<div class='btn-group-toggle' data-toggle='buttons'><label class='btn btn-secondary active'><input type='checkbox' autocomplete='off'> Follow</label></div>";
-keepCenteringOnCurrentPositionButton.style.position = "absolute";
-keepCenteringOnCurrentPositionButton.style.top = "62px";
-keepCenteringOnCurrentPositionButton.style.right = "10px";
-keepCenteringOnCurrentPositionButton.style.zIndex = "1000";
 
-let keepCenteringOnCurrentPosition = null;
+let follow = null;
 let isDragging = false;
-keepCenteringOnCurrentPositionButton.addEventListener("click", function(event){
-  console.log("Clicked");
+document.getElementById("followDiv").addEventListener("click", function(event){
   event.stopPropagation();
-  if(!keepCenteringOnCurrentPosition){
-    keepCenteringOnCurrentPosition = setInterval(() => {
-      console.log("Centering");
+});
+
+document.getElementById("followCheckBox").addEventListener("change", function(event){
+  event.stopPropagation();
+  if(!follow){
+    follow = setInterval(() => {
       if(!isDragging){
         map.setView(currentPosition, map.getZoom());
       }
     }, 1000);
   } else {
-    clearInterval(keepCenteringOnCurrentPosition);
-    keepCenteringOnCurrentPosition = null;
+    clearInterval(follow);
+    follow = null;
   }
 });
 
-mapDiv.appendChild(centerMapOnCurrentPositionButton);
-mapDiv.appendChild(keepCenteringOnCurrentPositionButton);
 
 map.addEventListener("dragstart", function(event){
   isDragging = true;
@@ -100,7 +93,7 @@ navSatFix_listener.subscribe(function(message) {
 
 setInterval(function(){
   mapCurrentPosition(currentPosition[0], currentPosition[1]);
-}, 1000);
+}, 600);
 
 function toDegreesMinutesSeconds(coordinate) {
   let direction = 0;
@@ -149,7 +142,7 @@ if (savedHeading) {
 function saveMarkers() {
   if(markerLayer.getLayers().length > 1){
     // Extract marker data from layer group
-    const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("gorilla")).map(marker => {
+    const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("blue")).map(marker => {
         return {
           lat: marker.getLatLng().lat,
           lng: marker.getLatLng().lng
@@ -244,7 +237,7 @@ document.getElementById('setDestinationButton').onclick = function(){
 
 const { transformCoordsClient, transformedCoords_publisher } = require('./allDaRos');
 function doLatLongTransform(){
-  const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("gorilla")).map(marker => {
+  const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("blue")).map(marker => {
     return {
       lat: marker.getLatLng().lat,
       lng: marker.getLatLng().lng
@@ -286,18 +279,40 @@ function doLatLongTransform(){
 
 });
 }
+const myPolyline = L.polyline([], { color: 'blue' }).addTo(map);
 
  document.getElementById("confirmButt").onclick = function(){
   doLatLongTransform();
+  if(myPolyline.getLatLngs().length > 0){
+    myPolyline.setLatLngs([]);
+  }
 };
 
 
 // [lat 36, 6, 58.5000++, N], [lng 96, 59, 52.669 W]
 
-const myPolyline = L.polyline([], { color: 'red' }).addTo(map);
+let lastPosition = null;
+setInterval(function() {
+  const latLng = L.latLng(currentPosition[0], currentPosition[1]);
 
-// setInterval(function(){
-//   const latLng = L.latLng(currentPosition[0], currentPosition[1]);
-//   myPolyline.addLatLng(latLng);
-// }, 1000);
+  if (!lastPosition ||
+      Math.abs(latLng.lat - lastPosition.lat) > 0.00001 ||
+      Math.abs(latLng.lng - lastPosition.lng) > 0.00001) {
+    myPolyline.addLatLng(latLng);
+    lastPosition = latLng;
+  }
+}, 600);
+
+const plannedPolyLine = L.polyline([], { color: 'red' }).addTo(map);
+let lastPlannedPosition = null;
+setInterval(function() {
+  const plannedLatLng = L.latLng(currentPosition[0], currentPosition[1]);
+
+  if (!lastPosition ||
+      Math.abs(plannedLatLng.lat - lastPlannedPosition.lat) > 0.00001 ||
+      Math.abs(plannedLatLng.lng - lastPlannedPosition.lng) > 0.00001) {
+    plannedPolyLine.addLatLng(plannedLatLng);
+    lastPlannedPosition = plannedLatLng;
+  }
+}, 600);
 

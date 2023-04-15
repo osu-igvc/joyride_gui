@@ -1,0 +1,42 @@
+{
+    "options": {
+      "paths": {
+        "root": "",
+        "fonts": ".",
+        "sprites": ".",
+        "icons": ".",
+        "styles": ".",
+        "mbtiles": ""
+      },
+      "domains": [
+        "localhost:9154",
+        "127.0.0.1:9154"
+      ],
+      "formatQuality": {
+        "jpeg": 80,
+        "webp": 90
+      },
+      "maxScaleFactor": 3,
+      "maxSize": 2048,
+      "pbfAlias": "pbf",
+      "serveAllFonts": false,
+      "serveAllStyles": false,
+      "serveStaticMaps": true,
+      "allowRemoteMarkerIcons": true,
+      "tileMargin": 0
+    },
+    "styles": {
+      "basic": {
+        "style": "./MapStyles/dark_matter.json",
+        "tilejson": {
+          "type": "overlay",
+          "bounds": [8.44806, 47.32023, 8.62537, 47.43468]
+        }
+      }
+    },
+    "data": {
+      "v3": {
+        "mbtiles": "stilly.mbtiles"
+      }
+    }
+  }

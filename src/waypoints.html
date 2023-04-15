@@ -7,12 +7,13 @@
     <title>BEFOREtoomanychanges</title>
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600&amp;display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Bayon&amp;display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Carrois+Gothic+SC&amp;display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=EB+Garamond&amp;display=swap">
     <link rel="stylesheet" href="assets/css/go_pokesregular.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+Georgian&amp;display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&amp;display=swap">
-    <link rel="stylesheet" href="assets/css/animationstuffs.css">
+    <link rel="stylesheet" href="assets/css/dash.css">
     <link rel="stylesheet" href="assets/css/leafletstuff.css">
     <link rel="stylesheet" href="assets/css/Navbar-Right-Links-icons.css">
     <link rel="stylesheet" href="assets/css/scrollbar2.css">
@@ -66,7 +67,11 @@
     <div class="container-fluid" style="height: 83vh;padding: 1%;">
         <div class="row" id="mainrow" style="margin: 0;height: 100%;width: 100%;">
             <div class="col-8 d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="height: 100%;width: 70%;padding: 0px 12px 0px 0px;">
-                <div class="placeholder border rounded border-3 border-dark shadowyEdge" id="mapDiv" style="width: 100%;height: 100%;border-style: solid;"></div>
+                <div class="placeholder border rounded border-3 border-dark shadowyEdge" id="mapDiv" style="width: 100%;height: 100%;position: relative;border-style: solid;">
+                    <div class="vstack gap-2" style="position: absolute;width: 10%;top: 1%;right: 1%;height: 15%;"><button class="btn btn-primary fw-light link-primary bg-secondary border rounded border-2 border-primary" id="centerMapOnPosition" type="button" style="height: 50%;font-size: 20px;font-family: Roboto, sans-serif;">Center</button>
+                        <div class="form-check form-switch text-primary text-bg-secondary border rounded border-2 border-primary d-xxl-flex justify-content-xxl-start align-items-xxl-center" id="followDiv" style="height: 50%;font-family: Roboto, sans-serif;font-size: 20px;margin: 0;padding: 0% 1%;"><input class="form-check-input" type="checkbox" id="followCheckBox" style="width: 30%;margin: 0;"><label class="form-check-label" for="followCheckBox" style="width: 68%;margin: 0% 0% 0% 2%;">FOLLOW</label></div>
+                    </div>
+                </div>
             </div>
             <div class="col-4" style="width: 30%;height: 100%;padding: 0;">
                 <div class="row" style="width: 100%;height: 94%;margin: 0;">
@@ -212,7 +217,6 @@
     <script src="assets/js/offcanvas.js"></script>
     <script src="map.js"></script>
     <script src="swiperNoSwiping.js"></script>
-
 </body>
 
 </html>
