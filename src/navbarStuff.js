@@ -173,8 +173,8 @@ document.getElementById("heatedSeatsIcon").style.setProperty("--color1", 'var(--
 function updateAccessories(message){
   headHighLightBeamOnOff(message.headlights_on, message.highbeams_on);
   seatbeltOnOff(message.driver_seatbelt_on);
-  leftBlinker = message.left_turn_signal_on;
-  rightBlinker = message.right_turn_signal_on;
+  let leftBlinker = message.left_turn_signal_on;
+  let rightBlinker = message.right_turn_signal_on;
   blinkerOnOff(leftBlinker, rightBlinker);
   wipersOnOff(message.wipers_on);
 }

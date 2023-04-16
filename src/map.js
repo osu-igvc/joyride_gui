@@ -235,7 +235,7 @@ document.getElementById('setDestinationButton').onclick = function(){
   document.getElementById('distanceToDestination').innerHTML = getDistanceToMarker(currentPosition[0], currentPosition[1], currentDestination[0], currentDestination[1]).toFixed(2);
 };
 
-const { transformCoordsClient, transformedCoords_publisher } = require('./allDaRos');
+const { transformCoordsClient, transformedCoords_publisher, plannedPath_listener, transformToLLClient } = require('./allDaRos');
 function doLatLongTransform(){
   const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("blue")).map(marker => {
     return {
@@ -303,16 +303,36 @@ setInterval(function() {
   }
 }, 600);
 
+function doToLLTransform(x, y){
+  let request = new ROSLIB.ServiceRequest({
+    xyz_point: {
+      x: x,
+      y: y,
+      z: 0
+    }
+  });
+
+  transformToLLClient.callService(request, function(result) {
+    return result;
+  });
+}
+
 const plannedPolyLine = L.polyline([], { color: 'red' }).addTo(map);
-let lastPlannedPosition = null;
+
+let plannedPath = [];
+
+plannedPath_listener.subscribe(function(message) {
+  plannedPath = message.poses;
+});
+
 setInterval(function() {
-  const plannedLatLng = L.latLng(currentPosition[0], currentPosition[1]);
-
-  if (!lastPosition ||
-      Math.abs(plannedLatLng.lat - lastPlannedPosition.lat) > 0.00001 ||
-      Math.abs(plannedLatLng.lng - lastPlannedPosition.lng) > 0.00001) {
-    plannedPolyLine.addLatLng(plannedLatLng);
-    lastPlannedPosition = plannedLatLng;
+  if(plannedPath.length > 0){
+    plannedPolyLine.setLatLngs(plannedPath.map(pose => {
+      let ll = doToLLTransform(pose.position.x, pose.position.y);
+      return {
+        lat: ll.latitude,
+        lng: ll.longitude
+      }
+    }));
   }
-}, 600);
-
+}, 1000);

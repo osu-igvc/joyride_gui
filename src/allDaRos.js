@@ -20,10 +20,22 @@ const steeringAngle_listener = new ROSLIB.Topic({
     messageType: "joyride_interfaces/msg/EPSPositionVelocityFeedback"
 });
 
+const expectedStuffs_listener = new ROSLIB.Topic({
+    ros: ros,
+    name: "/cmd_ack",
+    messageType: "ackermann_msgs/AckermannDriveStamped"
+});
+
 const wheelSpeed_listener = new ROSLIB.Topic({
     ros: ros,
     name: "/feedback/wheelspeed",
     messageType: "std_msgs/msg/Float32"
+});
+
+const head_listener = new ROSLIB.Topic({
+    ros: ros,
+    name: "/odom",
+    messageType: "nav_msgs/msg/Odometry"
 });
 
 const diagnosticMessages_listener = new ROSLIB.Topic({
@@ -51,6 +63,18 @@ const transformCoordsClient = new ROSLIB.Service({
     serviceType: 'robot_localization/FromLL'
   });
 
+const plannedPath_listener = new ROSLIB.Topic({
+    ros: ros,
+    name: '/plan',
+    messageType: 'nav_msgs/msg/Path'
+});
+
+const transformToLLClient = new ROSLIB.Service({
+    ros: ros,
+    name: '/toLL',
+    serviceType: 'robot_localization/ToLL'
+  });
+
 // Automode stuff
 const automodeClient = new ROSLIB.Service({
     ros: ros,
@@ -68,7 +92,7 @@ const gps_listener = new ROSLIB.Topic({
     ros: ros,
     name: "/vectornav/raw/gps",
     messageType: "joyride_sensors/vectornav/vectornav_msgs/msg/GpsGroup"
-})
+});
 
 const compressedImage_listener = new ROSLIB.Topic({
     ros: ros,
@@ -91,7 +115,11 @@ module.exports = {
     automodeClient: automodeClient,
     navSatFix_listener: navSatFix_listener,
     gps_listener: gps_listener,
-    compressedImage_listener: compressedImage_listener
+    compressedImage_listener: compressedImage_listener,
+    expectedStuffs_listener: expectedStuffs_listener,
+    plannedPath_listener: plannedPath_listener,
+    transformToLLClient: transformToLLClient,
+    head_listener: head_listener
 }
 
 

@@ -22,8 +22,8 @@ function updateActualSteeringAngle(angle){
   let angleDeg = Math.round(angle * 180/Math.PI);
   let angleRad = angle.toFixed(2);
   document.getElementById("actualSteeringAngleValue").innerHTML = angleDeg.toString() + '°' + ", " + angleRad + " rads";
-  document.getElementById("actualLeftWheelSVG").style.transform = `translate(0%, -112%) rotate(${angleDeg}deg)`;
-  document.getElementById("actualRightWheelSVG").style.transform = `translate(0%, -112%) rotate(${angleDeg}deg)`;
+  document.getElementById("actualLeftWheelSVG").style.transform = `translate(0%, -112%) rotate(${-angleDeg}deg)`;
+  document.getElementById("actualRightWheelSVG").style.transform = `translate(0%, -112%) rotate(${-angleDeg}deg)`;
 
 }
 
@@ -34,12 +34,12 @@ function updateExpectedSteeringAngle(angle){
   document.getElementById("expectedRightWheelSVG").style.transform = `translate(0%, -112%) rotate(${angleDeg}deg)`;
 }
 
-function updateHeader(head){
+function updateHead(head){
   document.getElementById("speedValue-2").innerHTML = head;
   document.getElementById("dashPoleCenter").style.transform = `rotate(${head}deg)`;
 }
 
-const { steeringAngle_listener, wheelSpeed_listener } = require('./allDaRos.js');
+const { steeringAngle_listener, wheelSpeed_listener, expectedStuffs_listener, head_listener } = require('./allDaRos.js');
 
 steeringAngle_listener.subscribe((message) => {
   updateSteeringAngle(message.position_radians);
@@ -50,6 +50,16 @@ wheelSpeed_listener.subscribe((message) => {
   updateSpeed(message.data);
 });
 
+expectedStuffs_listener.subscribe((message) => {
+  updateExpectedSteeringAngle(message.drive.steering_angle);
+  updateExpectedSpeed(message.drive.speed);
+});
+
+head_listener.subscribe((message) => {
+  let orient = message.header.pose.pose.orientation;
+  let headingRadians = Math.atan2(2*(orient.w*orient.z + orient.x*orient.y), 1 - 2*(orient.y*orient.y + orient.z*orient.z));
+  updateHead(headingRadians * 180/Math.PI);
+});
 
 document.getElementById("seatBeltIcon").addEventListener("click", () => {
   updateActualSteeringAngle(Math.random() * Math.PI/2 - Math.PI/4);

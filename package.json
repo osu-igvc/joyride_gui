@@ -1,8 +1,8 @@
 {
-  "name": "rostesting",
-  "productName": "rostesting",
+  "name": "imaginedragondeeznuts",
+  "productName": "imaginedragondeeznuts",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Big and hairy",
   "main": "src/index.js",
   "files": [
     "rosLogStuff.txt"
