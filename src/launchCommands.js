@@ -45,6 +45,10 @@ function createRosToggleButton(button, launchConfig, statusElement) {
     });
 }
 
+const { app } = require('@electron/remote');
+const path = require('path');
+
+
 const launchConfigs = [
     {
         id: 'rosBridge',
@@ -54,7 +58,7 @@ const launchConfigs = [
     },
     {
         id: "tileServer",
-        spawn_args: "tileserver-gl, --mbtiles, ./src/stilly.mbtiles, --port, 9154",
+        spawn_args: `tileserver-gl, --mbtiles, ./src/stilly.mbtiles, --port, 9154`,
         buttonId: "launch2",
         name: "Tile Server"
     }

@@ -1,7 +1,7 @@
 const L = require('leaflet');
 const ROSLIB = require('roslib');
 
-const map = L.map('mapDiv').setView([36.11, -97.058], 13);
+const map = L.map('mapDiv').setView([36.11, -97.058], 15);
 document.getElementById('mapDiv').classList.remove("placeholder");
 const tileUrl = 'http://localhost:9154/styles/basic-preview/{z}/{x}/{y}.png'; // path to your MBTiles file
 let tilelayer = L.tileLayer(tileUrl, {minZoom: 1, maxZoom: 22}).addTo(map);
@@ -82,17 +82,24 @@ function removeAllButStartingLayer(keepLayerId){
   });
 }
 
-let currentPosition = [36.11, -97.058];
+let currentPosition = [];
 let currentDestination;
-
+let initialPosition = [];
+let firstPosition = true;
 navSatFix_listener.subscribe(function(message) {
   if(message.latitude && message.longitude){
     currentPosition = [message.latitude, message.longitude];
+    if(firstPosition){
+      initialPosition = [message.latitude, message.longitude];
+      firstPosition = false;
+    }
   }
 });
 
 setInterval(function(){
-  mapCurrentPosition(currentPosition[0], currentPosition[1]);
+  if(currentPosition.length > 0){
+    mapCurrentPosition(currentPosition[0], currentPosition[1]);
+  }
 }, 600);
 
 function toDegreesMinutesSeconds(coordinate) {
@@ -220,14 +227,14 @@ let headingRadians = heading * Math.PI / 180;
 let straightLineDistance = null;
 document.getElementById('setDestinationButton').onclick = function(){
   addMarker();
-  console.log(heading);
+  console.log("heading: " + heading);
   saveMarkers();
 
   if(straightLineDistance){
     map.removeLayer(straightLineDistance);
   }
 
-  straightLineDistance = L.polyline([currentPosition, currentDestination], { color: 'blue' }).addTo(map);
+  straightLineDistance = L.polyline([currentPosition, currentDestination], { color: 'red' }).addTo(map);
   
   heading = document.getElementById('heading').innerHTML.replace('°', '');
   headingRadians = heading * Math.PI / 180;
@@ -242,7 +249,7 @@ function doLatLongTransform(){
       lat: marker.getLatLng().lat,
       lng: marker.getLatLng().lng
     }
-});
+  });
   console.log(`Marker Coords: ${markers[0].lat},  ${markers[0].lng}`)
 
 
@@ -255,8 +262,9 @@ function doLatLongTransform(){
   });
 
   transformCoordsClient.callService(request, function(result) {
-    console.log(result);
-
+    // Success callback
+    console.log("FromLL Result: " + result);
+  
     const transformedCoords = new ROSLIB.Message({
       header: {
         frame_id: 'map',
@@ -274,65 +282,220 @@ function doLatLongTransform(){
           w: Math.cos(headingRadians/2)
         }
       }
+    });
+    console.log(`Sent heading: ${headingRadians} radians, ${heading} degrees`);
+    console.log(`FromLL x: ${transformedCoords.pose.position.x}, y: ${transformedCoords.pose.position.y} w: ${transformedCoords.pose.orientation.w}, z: ${transformedCoords.pose.orientation.z}`);
+    transformedCoords_publisher.publish(transformedCoords);
+    document.getElementById("setDestinationButton").innerHTML = "Set Destination";
+  }, function(error) {
+    // Error callback
+    console.error('Error while calling the transformCoordsClient service:', error);
+    document.getElementById("setDestinationButton").innerHTML = "Error calling service";
   });
-  transformedCoords_publisher.publish(transformedCoords);
-
-});
 }
 const myPolyline = L.polyline([], { color: 'blue' }).addTo(map);
 
- document.getElementById("confirmButt").onclick = function(){
+document.getElementById("confirmButt").onclick = function() {
   doLatLongTransform();
-  if(myPolyline.getLatLngs().length > 0){
+  if (myPolyline.getLatLngs().length > 0) {
     myPolyline.setLatLngs([]);
   }
+
+  // Clear polyline data from localStorage
+  localStorage.removeItem('polylineData');
 };
 
-
-// [lat 36, 6, 58.5000++, N], [lng 96, 59, 52.669 W]
+// Load polyline data from localStorage
+const polylineData = localStorage.getItem('polylineData');
+if (polylineData) {
+  const latLngs = JSON.parse(polylineData);
+  myPolyline.setLatLngs(latLngs);
+}
 
 let lastPosition = null;
 setInterval(function() {
-  const latLng = L.latLng(currentPosition[0], currentPosition[1]);
+  if(currentPosition.length > 0){
+    const latLng = L.latLng(currentPosition[0], currentPosition[1]);
+  
+    if (!lastPosition ||
+        Math.abs(latLng.lat - lastPosition.lat) > 0.00001 ||
+        Math.abs(latLng.lng - lastPosition.lng) > 0.00001) {
+      myPolyline.addLatLng(latLng);
+      lastPosition = latLng;
 
-  if (!lastPosition ||
-      Math.abs(latLng.lat - lastPosition.lat) > 0.00001 ||
-      Math.abs(latLng.lng - lastPosition.lng) > 0.00001) {
-    myPolyline.addLatLng(latLng);
-    lastPosition = latLng;
+      // Save polyline data to localStorage
+      localStorage.setItem('polylineData', JSON.stringify(myPolyline.getLatLngs()));
+    }
   }
 }, 600);
 
-function doToLLTransform(x, y){
-  let request = new ROSLIB.ServiceRequest({
-    xyz_point: {
-      x: x,
-      y: y,
-      z: 0
-    }
-  });
+// function getRandomColor() {
+//   const letters = '0123456789ABCDEF';
+//   let color = '#';
+//   for (let i = 0; i < 6; i++) {
+//     color += letters[Math.floor(Math.random() * 16)];
+//   }
+//   return color;
+// }
 
-  transformToLLClient.callService(request, function(result) {
-    return result;
-  });
+function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+
+  // Define the RGB values for the preset CSS blue color
+  const cssBlueR = 65;
+  const cssBlueG = 105;
+  const cssBlueB = 225;
+
+  // Generate a new color and check if it is too similar to the preset CSS blue color
+  do {
+    // Generate a random color
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+
+    // Extract the RGB values for the new color
+    const r = parseInt(color.substring(1, 3), 16);
+    const g = parseInt(color.substring(3, 5), 16);
+    const b = parseInt(color.substring(5, 7), 16);
+
+    // Calculate the difference between the new color and the preset CSS blue color
+    const deltaR = Math.abs(r - cssBlueR);
+    const deltaG = Math.abs(g - cssBlueG);
+    const deltaB = Math.abs(b - cssBlueB);
+    const delta = (deltaR + deltaG + deltaB) / 3;
+
+    // If the difference is too small, generate a new color
+    if (delta < 50) {
+      color = '#';
+    }
+  } while (color === '#');
+
+  return color;
 }
 
-const plannedPolyLine = L.polyline([], { color: 'red' }).addTo(map);
+
+
+// function doToLLTransform(x, y) {
+//   return new Promise((resolve, reject) => {
+//     let request = new ROSLIB.ServiceRequest({
+//       map_point: {
+//         x: x,
+//         y: y,
+//         z: 0
+//       }
+//     });
+
+//     transformToLLClient.callService(request, function (result) {
+//       resolve(result);
+//     }, function (error) {
+//       // Error callback
+//       console.error('Error while calling the ToLL service:', error);
+//       reject(error);
+//     });
+//   });
+// }
+
+
+function doToLLTransform(x, y, z, refLat, refLon, refAlt) {
+  const a = 6378137; // semi-major axis of the WGS84 ellipsoid (m)
+  const f = 1 / 298.257223563; // flattening of the WGS84 ellipsoid
+  const e2 = 2 * f - f ** 2; // square of eccentricity
+
+  const lat0 = refLat * (Math.PI / 180); // reference latitude in radians
+  const lon0 = refLon * (Math.PI / 180); // reference longitude in radians
+
+  // Radius of curvature in the prime vertical
+  const N0 = a / Math.sqrt(1 - e2 * Math.sin(lat0) ** 2);
+
+  // Calculate the Cartesian coordinates of the reference point
+  const x0 = (N0 + refAlt) * Math.cos(lat0) * Math.cos(lon0);
+  const y0 = (N0 + refAlt) * Math.cos(lat0) * Math.sin(lon0);
+  const z0 = (N0 * (1 - e2) + refAlt) * Math.sin(lat0);
+
+  // Calculate the Cartesian coordinates of the input LTP point
+  const x1 = x0 + x;
+  const y1 = y0 + y;
+  const z1 = z0 + z;
+
+  // Convert the Cartesian coordinates to geodetic coordinates
+  const p = Math.sqrt(x1 ** 2 + y1 ** 2);
+  let lon = Math.atan2(y1, x1);
+  let lat = Math.atan2(z1, p * (1 - e2));
+
+  // Iterate to find the latitude
+  let latOld;
+  do {
+    latOld = lat;
+    const N = a / Math.sqrt(1 - e2 * Math.sin(latOld) ** 2);
+    lat = Math.atan((z1 + e2 * N * Math.sin(latOld)) / p);
+  } while (Math.abs(lat - latOld) > 1e-12);
+
+  const N = a / Math.sqrt(1 - e2 * Math.sin(lat) ** 2);
+  const alt = p / Math.cos(lat) - N;
+
+  return {
+    latitude: lat * (180 / Math.PI),
+    longitude: lon * (180 / Math.PI),
+    altitude: alt,
+  };
+}
 
 let plannedPath = [];
+let previousPlannedPath = [];
 
-plannedPath_listener.subscribe(function(message) {
+plannedPath_listener.subscribe(function (message) {
   plannedPath = message.poses;
 });
 
-setInterval(function() {
-  if(plannedPath.length > 0){
-    plannedPolyLine.setLatLngs(plannedPath.map(pose => {
-      let ll = doToLLTransform(pose.position.x, pose.position.y);
-      return {
+setInterval(function () {
+  if (plannedPath.length > 0 && JSON.stringify(previousPlannedPath) !== JSON.stringify(plannedPath)) {
+    const filteredPlannedPath = plannedPath.filter((plan, index) => index % 5 === 0 && !previousPlannedPath.includes(plan));
+    const plannedPolyLineCoords = [];
+    const startTime = new Date().getTime();
+    for (const pose of filteredPlannedPath) {
+      let ll = doToLLTransform(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, initialPosition[0], initialPosition[1], 0);
+
+      const latLng = {
         lat: ll.latitude,
         lng: ll.longitude
-      }
-    }));
+      };
+
+      plannedPolyLineCoords.push(latLng);
+    }
+    const endTime = new Date().getTime();
+    console.log(`Time to process ${filteredPlannedPath.length} poses: ${endTime - startTime} ms`);
+
+    const randomColor = getRandomColor();
+    const plannedPolyLine = L.polyline(plannedPolyLineCoords, { color: randomColor }).addTo(map);
+    previousPlannedPath = plannedPath;
+    console.log(`Planned Polyline: ${plannedPolyLine.getLatLngs()}`);
   }
-}, 1000);
+}, 200);
+
+// setInterval(async function () {
+//   if (plannedPath.length > 0 && JSON.stringify(previousPlannedPath) !== JSON.stringify(plannedPath)) {
+//     const filteredPlannedPath = plannedPath.filter((plan, index) => index % 25 === 0 && !previousPlannedPath.includes(plan));
+//     const plannedPolyLineCoords = [];
+//     const startTime = new Date().getTime();
+//     for (const pose of filteredPlannedPath) {
+//       let ll = await doToLLTransform(pose.pose.position.x, pose.pose.position.y);
+
+//       const latLng = {
+//         lat: ll.ll_point.latitude,
+//         lng: ll.ll_point.longitude
+//       };
+
+//       plannedPolyLineCoords.push(latLng);
+//     }
+//     const endTime = new Date().getTime();
+//     console.log(`Time to process ${filteredPlannedPath.length} poses: ${endTime - startTime} ms`);
+
+//     const randomColor = getRandomColor();
+//     const plannedPolyLine = L.polyline(plannedPolyLineCoords, { color: randomColor }).addTo(map);
+//     previousPlannedPath = plannedPath;
+//     console.log(`Planned Polyline: ${plannedPolyLine.getLatLngs()}`);
+//   }
+// }, 500);
+
+

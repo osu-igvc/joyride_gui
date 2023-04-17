@@ -1,11 +1,12 @@
 {
-  "name": "imaginedragondeeznuts",
-  "productName": "imaginedragondeeznuts",
+  "name": "joyridecbt",
+  "productName": "joyridecbt",
   "version": "1.0.0",
-  "description": "Big and hairy",
+  "description": "Closed beta test for Joyride",
   "main": "src/index.js",
   "files": [
-    "rosLogStuff.txt"
+    "rosLogStuff.txt",
+    "src/stilly.mbtiles"
   ],
   "scripts": {
     "start": "electron-forge start",
@@ -15,10 +16,16 @@
     "lint": "echo \"No linting configured\"",
     "tileserver": "tileserver-gl --mbtiles ./src/stilly.mbtiles --port 9154"
   },
+  "build": {
+    "files": [
+      "src/stilly.mbtiles"
+    ]
+  },
   "keywords": [],
   "author": "isaac",
   "license": "MIT",
   "dependencies": {
+    "@electron/remote": "^2.0.9",
     "chart.js": "^3.3.2",
     "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-adapter-luxon": "^1.0.0",

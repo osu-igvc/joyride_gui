@@ -30,8 +30,8 @@ function updateActualSteeringAngle(angle){
 function updateExpectedSteeringAngle(angle){
   let angleDeg = Math.round(angle * 180/Math.PI);
   let angleRad = angle.toFixed(2);
-  document.getElementById("expectedLeftWheelSVG").style.transform = `translate(0%, -112%) rotate(${angleDeg}deg)`;
-  document.getElementById("expectedRightWheelSVG").style.transform = `translate(0%, -112%) rotate(${angleDeg}deg)`;
+  document.getElementById("expectedLeftWheelSVG").style.transform = `translate(0%, -112%) rotate(${-angleDeg}deg)`;
+  document.getElementById("expectedRightWheelSVG").style.transform = `translate(0%, -112%) rotate(${-angleDeg}deg)`;
 }
 
 function updateHead(head){

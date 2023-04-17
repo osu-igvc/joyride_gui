@@ -1,4 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
+const { initialize, enable } = require('@electron/remote/main');
+initialize();
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -28,6 +30,8 @@ const createWindow = () => {
       contextIsolation: false
     },
   });
+
+  enable(mainWindow.webContents)
 
   // and load the index.html of the app.
   mainWindow.loadFile(path.join(__dirname, 'index.html'));

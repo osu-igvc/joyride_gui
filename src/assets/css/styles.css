@@ -189,3 +189,10 @@ body {
   box-shadow: 1px 1px 10px 0px #000000;
 }
 
+#followDiv{
+  z-index: 10000;;
+}
+
+#centerMapOnPosition{
+  z-index: 10000;
+}
