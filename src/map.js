@@ -1,8 +1,9 @@
 const L = require('leaflet');
 const ROSLIB = require('roslib');
 
-const map = L.map('mapDiv').setView([36.11, -97.058], 15);
+const map = L.map('mapDiv').setView([36.11, -97.058], 18);
 document.getElementById('mapDiv').classList.remove("placeholder");
+document.getElementById('mapDiv').classList.add("swiper-no-swiping");
 const tileUrl = 'http://localhost:9154/styles/basic-preview/{z}/{x}/{y}.png'; // path to your MBTiles file
 let tilelayer = L.tileLayer(tileUrl, {minZoom: 1, maxZoom: 22}).addTo(map);
 tilelayer.id = -1;
@@ -43,7 +44,7 @@ document.getElementById("followCheckBox").addEventListener("change", function(ev
   if(!follow){
     follow = setInterval(() => {
       if(!isDragging){
-        map.setView(currentPosition, map.getZoom());
+        map.setView(currentPosition, 18);
       }
     }, 1000);
   } else {
@@ -91,6 +92,7 @@ navSatFix_listener.subscribe(function(message) {
     currentPosition = [message.latitude, message.longitude];
     if(firstPosition){
       initialPosition = [message.latitude, message.longitude];
+      map.setView(initialPosition, map.getZoom());
       firstPosition = false;
     }
   }
@@ -242,7 +244,7 @@ document.getElementById('setDestinationButton').onclick = function(){
   document.getElementById('distanceToDestination').innerHTML = getDistanceToMarker(currentPosition[0], currentPosition[1], currentDestination[0], currentDestination[1]).toFixed(2);
 };
 
-const { transformCoordsClient, transformedCoords_publisher, plannedPath_listener, transformToLLClient } = require('./allDaRos');
+const { transformCoordsClient, transformedCoords_publisher, plannedPath_listener } = require('./allDaRos');
 function doLatLongTransform(){
   const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("blue")).map(marker => {
     return {
@@ -329,15 +331,6 @@ setInterval(function() {
   }
 }, 600);
 
-// function getRandomColor() {
-//   const letters = '0123456789ABCDEF';
-//   let color = '#';
-//   for (let i = 0; i < 6; i++) {
-//     color += letters[Math.floor(Math.random() * 16)];
-//   }
-//   return color;
-// }
-
 function getRandomColor() {
   const letters = '0123456789ABCDEF';
   let color = '#';
@@ -373,28 +366,6 @@ function getRandomColor() {
 
   return color;
 }
-
-
-
-// function doToLLTransform(x, y) {
-//   return new Promise((resolve, reject) => {
-//     let request = new ROSLIB.ServiceRequest({
-//       map_point: {
-//         x: x,
-//         y: y,
-//         z: 0
-//       }
-//     });
-
-//     transformToLLClient.callService(request, function (result) {
-//       resolve(result);
-//     }, function (error) {
-//       // Error callback
-//       console.error('Error while calling the ToLL service:', error);
-//       reject(error);
-//     });
-//   });
-// }
 
 
 function doToLLTransform(x, y, z, refLat, refLon, refAlt) {
@@ -472,30 +443,5 @@ setInterval(function () {
     console.log(`Planned Polyline: ${plannedPolyLine.getLatLngs()}`);
   }
 }, 200);
-
-// setInterval(async function () {
-//   if (plannedPath.length > 0 && JSON.stringify(previousPlannedPath) !== JSON.stringify(plannedPath)) {
-//     const filteredPlannedPath = plannedPath.filter((plan, index) => index % 25 === 0 && !previousPlannedPath.includes(plan));
-//     const plannedPolyLineCoords = [];
-//     const startTime = new Date().getTime();
-//     for (const pose of filteredPlannedPath) {
-//       let ll = await doToLLTransform(pose.pose.position.x, pose.pose.position.y);
-
-//       const latLng = {
-//         lat: ll.ll_point.latitude,
-//         lng: ll.ll_point.longitude
-//       };
-
-//       plannedPolyLineCoords.push(latLng);
-//     }
-//     const endTime = new Date().getTime();
-//     console.log(`Time to process ${filteredPlannedPath.length} poses: ${endTime - startTime} ms`);
-
-//     const randomColor = getRandomColor();
-//     const plannedPolyLine = L.polyline(plannedPolyLineCoords, { color: randomColor }).addTo(map);
-//     previousPlannedPath = plannedPath;
-//     console.log(`Planned Polyline: ${plannedPolyLine.getLatLngs()}`);
-//   }
-// }, 500);
 
 
