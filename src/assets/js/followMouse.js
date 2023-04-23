@@ -11,7 +11,6 @@ function round(number, increment){
 // let currentAngle = 0
 let rotate = 0;
 compass.addEventListener('touchmove', (event) => {
-    console.log("WOrking");
     const x = poles.getBoundingClientRect().left + poles.clientWidth/2;
     const y = poles.getBoundingClientRect().top + poles.clientHeight/2;
     const touch = event.touches[0];

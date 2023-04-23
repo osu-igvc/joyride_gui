@@ -189,10 +189,22 @@ body {
   box-shadow: 1px 1px 10px 0px #000000;
 }
 
-#followDiv{
+#followButt{
   z-index: 10000;;
 }
 
-#centerMapOnPosition{
+#centerMapButt{
+  z-index: 10000;
+}
+
+#mapSettings{
+  z-index: 1000;
+}
+
+#clearLinesButt{
+  z-index: 10000;
+}
+
+#clearMarkerButt{
   z-index: 10000;
 }

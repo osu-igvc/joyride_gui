@@ -67,9 +67,47 @@
     <div class="container-fluid" style="height: 83vh;padding: 1%;">
         <div class="row" id="mainrow" style="margin: 0;height: 100%;width: 100%;">
             <div class="col-8 d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="height: 100%;width: 70%;padding: 0px 12px 0px 0px;">
-                <div class="placeholder border rounded border-3 border-dark shadowyEdge" id="mapDiv" style="width: 100%;height: 100%;position: relative;border-style: solid;">
-                    <div class="vstack gap-2" style="position: absolute;width: 10%;top: 1%;right: 1%;height: 15%;"><button class="btn btn-primary fw-light link-primary bg-secondary border rounded border-2 border-primary" id="centerMapOnPosition" type="button" style="height: 50%;font-size: 20px;font-family: Roboto, sans-serif;">Center</button>
-                        <div class="form-check form-switch text-primary text-bg-secondary border rounded border-2 border-primary d-xxl-flex justify-content-xxl-start align-items-xxl-center" id="followDiv" style="height: 50%;font-family: Roboto, sans-serif;font-size: 20px;margin: 0;padding: 0% 1%;"><input class="form-check-input" type="checkbox" id="followCheckBox" style="width: 30%;margin: 0;"><label class="form-check-label" for="followCheckBox" style="width: 68%;margin: 0% 0% 0% 2%;">FOLLOW</label></div>
+                <div class="border rounded border-3 border-dark shadowyEdge" id="mapDiv" style="width: 100%;height: 100%;position: relative;border-style: solid;">
+                    <div class="vstack gap-1" style="position: absolute;width: 5%;top: 1%;left: 1%;height: 7.5%;">
+                        <div class="bg-secondary border rounded border-2 border-primary d-xxl-flex justify-content-xxl-center align-items-xxl-center gradientThing" id="mapSettings" style="width: 100%;height: 100%;--color1: var(--bs-white);"><img src="assets/img/MapStuffs/settings-svgrepo-com.svg" width="90%" height="90%" data-toggle=""></div>
+                    </div>
+                    <div class="vstack gap-1" style="position: absolute;width: 5%;top: 1%;right: 1%;height: 15%;">
+                        <div class="bg-secondary border rounded border-2 border-primary d-xxl-flex justify-content-xxl-center align-items-xxl-center gradientThing" id="centerMapButt" style="width: 100%;height: 50%;--color1: var(--bs-white);"><img src="assets/img/MapStuffs/centerMap.svg" width="90%" height="90%"></div>
+                        <div class="bg-secondary border rounded border-2 border-primary d-xxl-flex justify-content-xxl-center align-items-xxl-center gradientThing" id="followButt" style="width: 100%;height: 50%;--color1: var(--bs-secondary);"><svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" width="90%" height="90%" viewBox="0 0 49.999992 49.999996" version="1.1" id="svg5" xml:space="preserve" sodipodi:docname="followMap.svg" inkscape:version="1.2.2 (732a01da63, 2022-12-09)"><sodipodi:namedview id="namedview7" pagecolor="#ffffff" bordercolor="#000000" borderopacity="0.25" inkscape:showpageshadow="2" inkscape:pageopacity="0.0" inkscape:pagecheckerboard="0" inkscape:deskcolor="#d1d1d1" inkscape:document-units="mm" showgrid="false" inkscape:zoom="4.4291253" inkscape:cx="72.587695" inkscape:cy="94.601071" inkscape:window-width="1920" inkscape:window-height="1017" inkscape:window-x="-8" inkscape:window-y="-8" inkscape:window-maximized="1" inkscape:current-layer="layer1"/><defs id="defs2"/><g inkscape:label="Layer 1" inkscape:groupmode="layer" id="layer1" transform="translate(-117.13128,-28.599015)"><g id="g875"><path id="path3883" style="fill: #000000;stroke-width: 2.27273;" d="m 142.03467,28.601082 a 2.2727273,2.2727273 0 0 0 -2.17609,2.270662 v 4.686536 a 18.190909,18.190909 0 0 0 -15.76803,15.768031 h -4.68654 a 2.2727296,2.2727296 0 0 0 0,4.545457 h 4.68654 a 18.190909,18.190909 0 0 0 0.30024,1.676902 10.368,8.9519556 0 0 1 4.35063,-1.399398 13.636377,13.636377 0 0 1 -0.24649,-2.550234 13.636364,13.636364 0 0 1 13.39556,-13.634308 13.636364,13.636364 0 0 1 13.87719,13.634308 13.636377,13.636377 0 0 1 -15.58354,13.49375 10.368,8.9519556 0 0 1 -2.59416,4.109312 18.190909,18.190909 0 0 0 2.2686,0.437698 v 4.686536 a 2.2727296,2.2727296 0 0 0 4.54545,0 v -4.686536 a 18.190909,18.190909 0 0 0 15.76803,-15.76803 h 4.68654 a 2.2727296,2.2727296 0 0 0 0,-4.545457 h -4.68654 A 18.190909,18.190909 0 0 0 144.40403,35.55828 v -4.686536 a 2.2727273,2.2727273 0 0 0 -2.36936,-2.270662 z m 0.15348,18.179769 a 6.8181819,6.8181819 0 0 0 -0.22687,0.0021 6.8181819,6.8181819 0 0 0 -6.64817,6.81612 6.81819,6.81819 0 0 0 13.63638,0 6.8181819,6.8181819 0 0 0 -6.76135,-6.818187 z m -0.16382,3.960999 a 2.9274194,2.8387096 0 0 1 2.92747,2.838586 2.9274194,2.8387096 0 0 1 -2.92747,2.839102 2.9274194,2.8387096 0 0 1 -2.92747,-2.839102 2.9274194,2.8387096 0 0 1 2.92747,-2.838586 z"/><path d="m 122.46976,69.854678 8.38448,-7.734182 c 0.49101,-0.452921 0.14341,-1.227923 -0.55023,-1.227923 h -3.60381 c -0.86044,0 -1.55876,-0.644157 -1.55876,-1.437845 0,-0.79369 0.69832,-1.437847 1.55876,-1.437847 h 7.79371 c 1.72241,0 3.11749,1.288314 3.11749,2.875692 v 7.189237 c 0,0.793695 -0.69832,1.437852 -1.55875,1.437852 -0.86042,0 -1.55874,-0.644157 -1.55874,-1.437852 v -3.515539 c 0,-0.641274 -0.84016,-0.961919 -1.33117,-0.508998 l -7.38377,6.812531 c -0.60947,0.560761 -0.60947,1.470916 0,2.033114 l 0.64221,0.592394 c 1.21738,1.122959 1.21738,2.943276 0,4.067673 l -9.53015,8.789569 c -0.60792,0.562198 -1.59616,0.562198 -2.20407,0 v 0 c -0.60947,-0.560761 -0.60947,-1.470923 0,-2.033121 l 8.42656,-7.773005 c 0.60947,-0.562198 0.60791,-1.47236 -0.002,-2.034559 l -0.63908,-0.58808 c -1.2205,-1.122959 -1.22206,-2.944714 0,-4.069111" id="arrow_left_up-[#295]" style="fill: #000000;fill-rule: evenodd;stroke: none;stroke-width: 1.49708;"/></g></g></svg></div>
+                    </div>
+                    <div class="vstack gap-1" style="position: absolute;width: 5%;top: 17.5%;right: 1%;height: 15%;">
+                        <div class="bg-secondary border rounded border-2 border-primary d-xxl-flex justify-content-xxl-center align-items-xxl-center gradientThing" id="clearLinesButt" style="width: 100%;height: 50%;--color1: var(--bs-white);"><img src="assets/img/MapStuffs/clearLines.svg" width="90%" height="90%"></div>
+                        <div class="bg-secondary border rounded border-2 border-primary d-xxl-flex justify-content-xxl-center align-items-xxl-center gradientThing" id="clearMarkerButt" style="width: 100%;height: 50%;--color1: var(--bs-white);"><img src="assets/img/MapStuffs/clearMarkers.svg" width="90%" height="90%"></div>
+                    </div>
+                    <div class="offcanvas offcanvas-start shadowyEdge" tabindex="-1" data-bs-backdrop="false" id="mapOffCanvas" style="position: absolute;transition: none;border-right: 3px solid var(--bs-gray-dark);width: 25%;height: 100%;">
+                        <div class="offcanvas-header">
+                            <h3 class="offcanvas-title fw-normal" style="font-family: Roboto, sans-serif;">Settings</h3><button class="btn-close" type="button" aria-label="Close" data-bs-dismiss="offcanvas"></button>
+                        </div>
+                        <div class="offcanvas-body d-flex flex-column" style="padding: 0;">
+                            <div class="vstack gap-3" style="width: 100%;height: 100%;padding: 0% 5%;">
+                                <div style="width: 100%;height: 10%;">
+                                    <h5 class="text-capitalize fw-normal d-xxl-flex align-items-xxl-center" style="height: 50%;margin: 0;font-family: Roboto, sans-serif;">Max Planned Paths</h5><input type="number" id="maxPlannedPath" max="99999" min="-1" step="1" value="-1" style="width: 100%;height: 40%;font-family: Roboto, sans-serif;">
+                                </div>
+                                <div style="width: 100%;height: 10%;">
+                                    <h5 class="text-capitalize fw-normal d-xxl-flex align-items-xxl-center" style="height: 50%;margin: 0;font-family: Roboto, sans-serif;">Traveled Path Duration</h5>
+                                    <div class="d-inline-flex" style="width: 100%;height: 40%;"><input type="number" id="traveledPathDuration" max="99999" min="-1" step="1" value="-1" style="width: 78%;height: 100%;font-family: Roboto, sans-serif;margin: 0% 2% 0% 0%;"><select id="traveledPathUnits" style="width: 20%;height: 100%;">
+                                            <option value="S" selected="">S</option>
+                                            <option value="M">M</option>
+                                            <option value="H">H</option>
+                                        </select></div>
+                                </div>
+                                <div style="width: 100%;">
+                                    <div class="d-inline-flex justify-content-xxl-start align-items-xxl-center" style="width: 100%;border-bottom-width: 1px;">
+                                        <h5 class="text-capitalize fw-normal" style="height: 100%;margin: 0;width: 75%;font-family: Roboto, sans-serif;">Max markers:</h5><span class="fw-normal" id="maxMarkerText" style="width: 15%;height: 100%;color: var(--bs-black);font-size: 15px;font-family: Roboto, sans-serif;">1</span>
+                                    </div><input class="form-range" type="range" id="maxMarkerRange" name="maxMarkers" value="1" min="1" max="15" step="1">
+                                </div>
+                                <div style="width: 100%;">
+                                    <div class="d-inline-flex justify-content-xxl-start align-items-xxl-center" style="width: 100%;border-bottom-width: 1px;">
+                                        <h5 class="text-capitalize fw-normal" style="height: 100%;margin: 0;width: 75%;font-family: Roboto, sans-serif;">Default Zoom:</h5><span class="fw-normal" id="defaultZoomText" style="width: 15%;height: 100%;color: var(--bs-black);font-size: 15px;font-family: Roboto, sans-serif;">18</span>
+                                    </div><input class="form-range" type="range" id="defaultZoomRange" name="defaultZoom" value="18" min="1" max="22" step="1">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -212,11 +250,11 @@
 </svg>
 </div>
     <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-    <script src="navbarStuff.js"></script>
     <script src="assets/js/followMouse.js"></script>
-    <script src="assets/js/offcanvas.js"></script>
-    <script src="map.js"></script>
+    <script src="navbarStuff.js"></script>
     <script src="swiperNoSwiping.js"></script>
+    <script src="map.js"></script>
+    <script src="assets/js/offcanvas.js"></script>
 </body>
 
 </html>

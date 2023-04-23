@@ -1,20 +1,30 @@
-let shadowCanvas = document.getElementById("shadowOffCanv");
-let shadowCanvasUtil = new bootstrap.Offcanvas(shadowCanvas);
+const driveModeButt = document.getElementById("driveModeButt");
+const driveModeCancelButt = document.getElementById("driveModeCancelButt");
+const exitDriveModeButt = document.getElementById("exitDriveModeButt");
+const enterDriveModeButt = document.getElementById("enterDriveModeButt");
+const exitDriveModeImg = document.getElementById("exitDriveModeImg");
+const enterDriveModeImg = document.getElementById("enterDriveModeImg");
+// drive mode setup stuffs
+const presetCanvas = document.getElementById("launchPresetOffCanv");
+const bsPresetCanvas = new bootstrap.Offcanvas(presetCanvas);
 
-let toggleDriveModeButt = document.getElementById("toggleDriveModeButt");
+const drivePresetButts = document.getElementById("presetButts");
+const joystickPresetButt = document.getElementById("joystickPresetButt");
+const autonomyPresetButt = document.getElementById("autonomyPresetButt");
 
-let driveModeButts = document.getElementById("driveModeButts");
-let manualButt = document.getElementById("manualButt");
-let joystickButt = document.getElementById("joystickButt");
-let autonomyButt = document.getElementById("autonomyButt");
+let presetSelected = null;
 
-let driveImg = document.getElementById("driveModeImg");
-let drivePushButtHead = document.getElementById("pushDaButton");
-let driveHead = document.getElementById("driveModeCountdown");
+// confirm drive mode stuffs
+const shadowCanvas = document.getElementById("shadowOffCanv");
+const shadowCanvUtil = new bootstrap.Offcanvas(shadowCanvas);
 
-let countdown = null;
-let count = 5;
+const driveModeButts = document.getElementById("driveModeButts");
 
+const driveImg = document.getElementById("driveModeImg");
+const drivePushButtHead = document.getElementById("pushDaButton");
+const driveHead = document.getElementById("driveModeCountdown");
+
+let isAutoMode = false;
 let autoModeInterval = null;
 
 const ROSLIB = require('roslib');
@@ -22,7 +32,6 @@ const { automodeClient } = require('./allDaRos');
 
 let isEnableReady = false;
 let isAutoButtonPressed = false;
-let currentDriveMode = "Manual";
 
 //declared in navbarStuff.js
 driveByWire_listener.subscribe(function(message) {
@@ -30,43 +39,115 @@ driveByWire_listener.subscribe(function(message) {
     isAutoButtonPressed = message.auto_button_pressed;
 });
 
-toggleDriveModeButt.onclick = () => {
+// drive mode setup stuffs
+let disableInterval = null;
+driveModeButt.addEventListener("click", function() {
+    if(presetSelected && !isAutoMode){
+        driveHead.hidden = true;
+        drivePushButtHead.hidden = true;
+        driveModeButts.hidden = false;
+    }
+    else if(isAutoMode){
+        disableInterval = setInterval(() => {
+            makeAutoModeDisableRequest();
+        }, 1000);
+    }
+});
+
+driveModeCancelButt.addEventListener("click", function() {
     driveHead.hidden = true;
     drivePushButtHead.hidden = true;
+    drivePushButtHead.style.setProperty("color", "var(--bs-black)");
     driveModeButts.hidden = false;
-    if (countdown){
-        clearInterval(countdown);
-    }
-    if (autoModeInterval){
-        clearInterval(autoModeInterval);
-    }
-    if(currentDriveMode == "Manual"){
-        shadowCanvasUtil.show();
-        shadowCanvasUtil.hidden = false;
-    }
-    else{
-        makeAutoModeDisableRequest();
-    }
+});
+
+joystickPresetButt.addEventListener("click", function(){
+    presetSelected = 'Joystick';
+    driveModeButt.innerHTML = "Confirm Joystick Mode";
+    driveModeButt.style.setProperty("--color1", "var(--bs-info)");
+    exitDriveModeHead.innerHTML = "Exit Joystick Mode";
+    enterDriveModeHead.innerHTML = "Enter Joystick Mode";
+    exitDriveModeImg.src = "./assets/img/DriveMode/joystick.svg";
+    enterDriveModeImg.src = "./assets/img/DriveMode/joystick.svg";
+    driveModeButt.setAttribute("data-bs-target", "#shadowOffCanv");
+    bsPresetCanvas.hide();
+})
+
+autonomyPresetButt.addEventListener("click", function(){
+    presetSelected = 'Autonomous';
+    driveModeButt.innerHTML = "Confirm Autonomous Mode";
+    driveModeButt.style.setProperty("--color1", "var(--bs-info)");
+    exitDriveModeHead.innerHTML = "Exit Autonomous Mode";
+    enterDriveModeHead.innerHTML = "Enter Autonomous Mode";
+    exitDriveModeImg.src = "./assets/img/DriveMode/computron.svg";
+    enterDriveModeImg.src = "./assets/img/DriveMode/computron.svg";
+    driveModeButt.setAttribute("data-bs-target", "#shadowOffCanv");
+    bsPresetCanvas.hide();
+})
+
+exitDriveModeButt.addEventListener("click", function(){
+    presetSelected = null;
+    shadowCanvUtil.hide();
+    changeDriveModeButt("Setup");
+})
+
+enterDriveModeButt.addEventListener("click", function(){
+    driveModeButts.hidden = true;
+
+    drivePushButtHead.classList.remove("blink_me");
+    drivePushButtHead.innerHTML = "Making request...";
+    drivePushButtHead.hidden = false;
     
-}
+    autoModeInterval = setInterval(() => {
+        makeAutoModeEnableRequest(presetSelected);
+    }, 1500);
+});
 
-document.getElementById("driveModeCancelButt").onclick = () => {
-    driveHead.hidden = true;
-    drivePushButtHead.hidden = true;
-    driveModeButts.hidden = false;
-    if (countdown){
-        clearInterval(countdown);
-    }
-    if (autoModeInterval){
-        clearInterval(autoModeInterval);
-    }
-    currentDriveMode = "Manual";
-}
 
-function changeToggleButton(currentMode){
-    shadowCanvasUtil.hidden = true;
-    shadowCanvasUtil.hide();
-    toggleDriveModeButt.innerHTML = `Exit ${currentMode} Mode`;
+
+shadowCanvas.addEventListener('show.bs.offcanvas', function (event) {
+    if (driveModeButt.innerHTML.startsWith('Exit')) {
+        event.preventDefault();
+    }
+});
+
+function changeDriveModeButt(driveModeStatus){
+    if(driveModeStatus === "Setup"){
+        driveModeButt.innerHTML = "Drive Mode Setup";
+        driveModeButt.style.setProperty("--color1", "var(--bs-black)");
+        driveModeButt.setAttribute("data-bs-target", "#launchPresetOffCanv");
+        driveImg.src = `./assets/img/DriveMode/driveModeManual.svg`;
+        driveImg.classList.add("bounce_me");
+        setTimeout(function(){
+            driveImg.classList.remove("bounce_me");
+        }, 1000);
+        isAutoMode = false;
+    }
+    else if(driveModeStatus === "Confirm"){
+        driveModeButt.innerHTML = "Confirm Drive Mode";
+        driveModeButt.style.setProperty("--color1", "var(--bs-info)");
+        driveModeButt.setAttribute("data-bs-target", "#shadowOffCanv");
+    }
+    else if(driveModeStatus === "Joystick"){
+        driveImg.src = `./assets/img/DriveMode/driveModeJoystick.svg`;
+        driveImg.classList.add("bounce_me");
+        setTimeout(function(){
+            driveImg.classList.remove("bounce_me");
+        }, 1000);
+        driveModeButt.innerHTML = "Exit Joystick Mode";
+        driveModeButt.style.setProperty("--color1", "var(--bs-gray)");
+        isAutoMode = true;
+    }
+    else if(driveModeStatus === "Autonomous"){
+        driveImg.src = `./assets/img/DriveMode/driveModeAutonomous.svg`;
+        driveImg.classList.add("bounce_me");
+        setTimeout(function(){
+            driveImg.classList.remove("bounce_me");
+        }, 1000);
+        driveModeButt.innerHTML = "Exit Autonomous Mode";
+        driveModeButt.style.setProperty("--color1", "var(--bs-gray)");
+        isAutoMode = true;
+    }
 }
 
 function makeAutoModeEnableRequest(driveMode){
@@ -75,32 +156,44 @@ function makeAutoModeEnableRequest(driveMode){
         sender_name: "onboard_interface",
         set_auto_enabled: true,
     });
-
     automodeClient.callService(request, function(result) {
         let maxSucks = result.response;
         if(maxSucks == 0){
             drivePushButtHead.style.setProperty("color", "var(--bs-black)");
             drivePushButtHead.innerHTML = "Press Automode Button";
             drivePushButtHead.classList.add("blink_me");
-            currentDriveMode = driveMode;
             clearInterval(autoModeInterval);
+            changeDriveModeButt(driveMode);
         }
         else if(maxSucks == 1){
             drivePushButtHead.style.setProperty("color", "var(--bs-warning)");
             drivePushButtHead.innerHTML = "Request timed out. Trying again...";
+            changeDriveModeButt("Confirm");
         }
         else if(maxSucks == 2){
             drivePushButtHead.style.setProperty("color", "var(--bs-danger)");
             drivePushButtHead.innerHTML = "System unhealthy";
+            changeDriveModeButt("Confirm");
             clearInterval(autoModeInterval);
         }
         else{
             drivePushButtHead.style.setProperty("color", "var(--bs-success)");
             drivePushButtHead.innerHTML = "Already in Autonomous Mode";
-            currentMode = driveMode;
             clearInterval(autoModeInterval);
         }
-    });
+    }, function(error){
+            if(error.includes("Service") && error.includes("does not exist")){
+                drivePushButtHead.style.setProperty("color", "var(--bs-danger)");
+                drivePushButtHead.innerHTML = "Service Does Not Exist";
+                clearInterval(autoModeInterval);
+            }
+            else{
+                driveModeButt.innerHTML = error;
+                driveModeButt.style.setProperty("--color1", "var(--bs-danger)");
+                clearInterval(disableInterval);
+            }
+        }
+    );
 }
 
 function makeAutoModeDisableRequest(){
@@ -112,109 +205,55 @@ function makeAutoModeDisableRequest(){
     automodeClient.callService(request, function(result) {
         console.log(result);
         if(result == 0 || result == 3){
-            toggleDriveModeButt.innerHTML = "Toggle Drive Mode";
-            currentDriveMode = "Manual";
-            toggleDriveModeButt.style.backgroundColor = "var(--bs-black)";
+            changeDriveModeButt("Setup");
+            clearInterval(disableInterval);
         }
         else if(result == 1){
-            toggleDriveModeButt.innerHTML = "Request timed out. Trying again...";
-            toggleDriveModeButt.style.backgroundColor = "var(--bs-warning)";
+            driveModeButt.innerHTML = "Timed out. Retrying...";
+            driveModeButt.style.setProperty("--color1", "var(--bs-warning)");
         }
         else if(result == 2){
-            toggleDriveModeButt.innerHTML = "System unhealthy?";
-            toggleDriveModeButt.style.backgroundColor = "var(--bs-danger)";
+            driveModeButt.innerHTML = "System unhealthy?";
+            driveModeButt.style.setProperty("--color1", "var(--bs-danger)");
+            clearInterval(disableInterval);
         }
         else{
-            toggleDriveModeButt.innerHTML = "Got value other than 0 - 3???";;
-            toggleDriveModeButt.style.backgroundColor = "var(--bs-danger)";
+            driveModeButt.innerHTML = "Got value other than 0 - 3???";;
+            driveModeButt.style.setProperty("--color1", "var(--bs-danger)");
+            clearInterval(disableInterval);
         }
-    });
+    }, function(error){
+            if(error.includes("Service") && error.includes("does not exist")){
+                drivePushButtHead.style.setProperty("color", "var(--bs-danger)");
+                drivePushButtHead.innerHTML = "Service Does Not Exist";
+                clearInterval(autoModeInterval);
+            }
+            else{
+                driveModeButt.innerHTML = error;
+                driveModeButt.style.setProperty("--color1", "var(--bs-danger)");
+                clearInterval(disableInterval);
+            }
+        }
+    );
 }
 
-manualButt.addEventListener("click", function(){
-    driveImg.src = "./assets/img/DriveMode/driveModeManual.svg";
-    shadowCanvasUtil.hide();
-    document.getElementById("toggleDriveModeButt").innerHTML = "Toggle Drive Mode";
-});
-
-function joystickCountdown(){
-    drivePushButtHead.hidden = true;
-    count = 5;
-    driveHead.innerHTML = `Joystick Control Begins in ${count}`;
-    driveHead.hidden = false;
-    countdown = setInterval(() => {
-        --count;
-        if(count <= 0){
-            shadowCanvasUtil.hide();
-            driveModeButts.hidden = false;
-            driveImg.src = "./assets/img/DriveMode/driveModeJoystick.svg";
-            clearInterval(countdown);
-
-        }
-        else{
-            driveHead.innerHTML = `Joystick Control Begins in ${count}`;
-        }
-    }, 1000);
-}
-
-joystickButt.addEventListener("click", function(){
-    driveModeButts.hidden = true;
-    driveHead.hidden = true;
-    drivePushButtHead.classList.remove("blink_me");
-    drivePushButtHead.innerHTML = "Making request...";
-    drivePushButtHead.hidden = false;
-    autoModeInterval = setInterval(() => {
-        makeAutoModeRequest("Joystick");
-    }, 3000);
-});
-
-function autonomyCountdown(){
-    count = 5;
-    driveModeButts.hidden = true;
-    drivePushButtHead.hidden = false;
-    driveHead.innerHTML = `Autonomous Control Begins in ${count}`;
-    driveHead.hidden = false;
-    countdown = setInterval(() => {
-        --count;
-        if(count <= 0){
-            shadowCanvasUtil.hide();
-            driveModeButts.hidden = false;
+setInterval(function(){
+    if(isEnableReady && isAutoButtonPressed){
+        if(currentDriveMode == "Autonomy"){
+            changeToggleButton("Autonomy");
             driveImg.src = "./assets/img/DriveMode/driveModeAutonomy.svg";
-            clearInterval(countdown);
-
+            driveImg.classList.add("bounce_me");
+            setTimeout(function(){
+                driveImg.classList.remove("bounce_me");
+            }, 1000);
         }
-        else{
-            driveHead.innerHTML = `Autonomous Control Begins in ${count}`;
+        else if(currentDriveMode == "Joystick"){
+            changeToggleButton("Joystick");
+            driveImg.src = "./assets/img/DriveMode/driveModeJoystick.svg";
+            driveImg.classList.add("bounce_me");
+            setTimeout(function(){
+                driveImg.classList.remove("bounce_me");
+            }, 1000);
         }
-    }, 1000);
-}
-
-autonomyButt.addEventListener("click", function(){
-    driveModeButts.hidden = true;
-    driveHead.hidden = true;
-    drivePushButtHead.classList.remove("blink_me");
-    drivePushButtHead.innerHTML = "Making request...";
-    drivePushButtHead.hidden = false;
-    autoModeInterval = setInterval(() => {
-        makeAutoModeEnableRequest("Autonomy");
-    }, 3000);
-});
-
-if(isEnableReady && isAutoButtonPressed){
-    if(currentDriveMode == "Autonomy"){
-        changeToggleButton("Autonomy");
-        driveImg.src = "./assets/img/DriveMode/driveModeAutonomy.svg";
-        driveImg.classList.add("bounce_me");
-        setTimeout(function(){
-            driveImg.classList.remove("bounce_me");
-        }, 1000);
     }
-    else if(currentDriveMode == "Joystick"){
-        changeToggleButton("Joystick");
-        driveImg.src = "./assets/img/DriveMode/driveModeJoystick.svg";
-        driveImg.classList.add("bounce_me");
-        setTimeout(function(){
-            driveImg.classList.remove("bounce_me");
-        }, 1000);
-    }
-}
+}, 1000);

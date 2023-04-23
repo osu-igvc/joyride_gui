@@ -1,9 +1,160 @@
 const L = require('leaflet');
 const ROSLIB = require('roslib');
+const mapDiv = document.getElementById("mapDiv");
+// Map Settings
+const maxPlannedPath = document.getElementById("maxPlannedPath");
+let maxPlannedPathValue = -1;
+const traveledPathDuration = document.getElementById("traveledPathDuration");
+let traveledPathDurationValue = -1;
 
-const map = L.map('mapDiv').setView([36.11, -97.058], 18);
-document.getElementById('mapDiv').classList.remove("placeholder");
-document.getElementById('mapDiv').classList.add("swiper-no-swiping");
+const markerRange = document.getElementById("maxMarkerRange");
+let markerRangeValue = 1;
+
+
+const defaultZoomRange = document.getElementById("defaultZoomRange");
+let defaultZoomRangeValue = 18;
+
+const mapOffCanvas = document.getElementById('mapOffCanvas');
+const bsMap = new bootstrap.Offcanvas(mapOffCanvas)
+let mapVisibility = false;
+document.getElementById("mapSettings").addEventListener('click', function (e) {
+    e.stopPropagation();
+    bsMap.show();
+});
+
+// Prevent offcanvas triggering map stuffs
+mapOffCanvas.addEventListener("click", function(e){
+  e.stopPropagation();
+});
+mapOffCanvas.addEventListener("touchstart", function(e){
+  e.stopPropagation();
+});
+mapOffCanvas.addEventListener("touchmove", function(e){
+  e.stopPropagation();
+});
+
+defaultZoomRange.addEventListener("mousedown", function(e){
+  e.stopPropagation();
+});
+defaultZoomRange.addEventListener("click", function(e){
+  e.stopPropagation();
+});
+defaultZoomRange.addEventListener("touchstart", function(e){
+  e.stopPropagation();
+});
+defaultZoomRange.addEventListener("touchmove", function(e){
+  e.stopPropagation();
+});
+
+markerRange.addEventListener("mousedown", function(e){
+  e.stopPropagation();
+});
+markerRange.addEventListener("click", function(e){
+  e.stopPropagation();
+});
+markerRange.addEventListener("touchstart", function(e){
+  e.stopPropagation();
+});
+markerRange.addEventListener("touchmove", function(e){
+  e.stopPropagation();
+});
+
+
+// Save map settings
+mapOffCanvas.addEventListener('hidden.bs.offcanvas', function () {
+    // Save settings
+    maxPlannedPathValue = maxPlannedPath.value;
+    traveledPathDurationValue = traveledPathDuration.value;
+    markerRangeValue = markerRange.value;
+    defaultZoomRangeValue = defaultZoomRange.value;
+    let settings = {
+        maxPlannedPath: maxPlannedPathValue,
+        traveledPathDuration: traveledPathDurationValue,
+        maxMarkerRange: markerRangeValue,
+        defaultZoom: defaultZoomRangeValue
+    };
+    localStorage.setItem("mapSettings", JSON.stringify(settings));
+    mapVisibility = false;
+});
+
+mapOffCanvas.addEventListener('shown.bs.offcanvas', function () {
+    mapVisibility = true;
+});
+
+// Load map settings
+if(localStorage.getItem("mapSettings")){
+    let settings = JSON.parse(localStorage.getItem("mapSettings"));
+    maxPlannedPath.value = settings.maxPlannedPath;
+    maxPlannedPathValue = settings.maxPlannedPath;
+    traveledPathDuration.value = settings.traveledPathDuration;
+    traveledPathDurationValue = settings.traveledPathDuration;
+    markerRange.value = settings.maxMarkerRange;
+    markerRangeValue = settings.maxMarkerRange;
+    defaultZoomRange.value = settings.defaultZoom;
+    defaultZoomRangeValue = settings.defaultZoom;
+    document.getElementById("maxMarkerText").innerHTML = settings.maxMarkerRange;
+    document.getElementById("defaultZoomText").innerHTML = settings.defaultZoom;
+}
+
+mapDiv.addEventListener("click", function(e){
+    if(mapVisibility){
+        bsMap.hide();
+    }
+});
+
+mapDiv.addEventListener("touchstart", function(e){
+    if(mapVisibility){
+        bsMap.hide();
+    }
+});
+
+document.getElementById("centerMapButt").addEventListener("click", function(event){
+  event.stopPropagation();
+  if(currentPosition.length > 0){
+    map.setView(currentPosition, defaultZoomRangeValue);
+  }
+});
+
+
+let follow = null;
+let isDragging = false;
+const followButt = document.getElementById("followButt");
+followButt.addEventListener("click", function(event){
+  event.stopPropagation();
+  followButt.style.setProperty("--color1" ,followButt.style.getPropertyValue("--color1") == "var(--bs-success)" ? "var(--bs-white)" : "var(--bs-success)");
+  if(!follow){
+    follow = setInterval(() => {
+      if(!isDragging){
+        if(currentPosition.length > 0){
+          map.setView(currentPosition, map.getZoom());
+        }
+      }
+    }, 1000);
+  } else {
+    clearInterval(follow);
+    follow = null;
+  }
+});
+
+document.getElementById("clearLinesButt").addEventListener("click", function(event){
+  event.stopPropagation();
+  pathTraveledLine.setLatLngs([]);
+  localStorage.setItem('pathTraveledData', JSON.stringify([]));
+  plannedPathLayer.clearLayers();
+  localStorage.setItem('plannedPathData', JSON.stringify([]));
+});
+
+document.getElementById("clearMarkerButt").addEventListener("click", function(event){
+  event.stopPropagation();
+  markerLayer.clearLayers();
+});
+
+// Map Settings End
+
+
+const map = L.map('mapDiv',{zoomControl: false}).setView([36.11, -97.058], 18);
+mapDiv.classList.remove("placeholder");
+mapDiv.classList.add("swiper-no-swiping");
 const tileUrl = 'http://localhost:9154/styles/basic-preview/{z}/{x}/{y}.png'; // path to your MBTiles file
 let tilelayer = L.tileLayer(tileUrl, {minZoom: 1, maxZoom: 22}).addTo(map);
 tilelayer.id = -1;
@@ -26,34 +177,6 @@ const currentPositionIcon = new L.icon({
   shadowSize: [41, 41]
 });
 
-
-document.getElementById("centerMapOnPosition").addEventListener("click", function(event){
-  event.stopPropagation();
-  map.setView(currentPosition, map.getZoom());
-});
-
-
-let follow = null;
-let isDragging = false;
-document.getElementById("followDiv").addEventListener("click", function(event){
-  event.stopPropagation();
-});
-
-document.getElementById("followCheckBox").addEventListener("change", function(event){
-  event.stopPropagation();
-  if(!follow){
-    follow = setInterval(() => {
-      if(!isDragging){
-        map.setView(currentPosition, 18);
-      }
-    }, 1000);
-  } else {
-    clearInterval(follow);
-    follow = null;
-  }
-});
-
-
 map.addEventListener("dragstart", function(event){
   isDragging = true;
 });
@@ -63,6 +186,33 @@ map.addEventListener("dragend", function(event){
 
 
 let markerLayer = L.layerGroup().addTo(map);
+let traveledPathLayer = L.layerGroup().addTo(map);
+let plannedPathLayer = L.layerGroup().addTo(map);
+let distanceToDestinationLayer = L.layerGroup().addTo(map);
+
+// Update map when settings are changed
+maxPlannedPath.addEventListener("input", function(e){
+  e.stopPropagation();
+  maxPlannedPathValue = e.target.value;
+});
+
+traveledPathDuration.addEventListener("input", function(e){
+  e.stopPropagation();
+  traveledPathDurationValue = e.target.value;
+});
+
+defaultZoomRange.addEventListener("input", function(e){
+  e.stopPropagation();
+  document.getElementById("defaultZoomText").innerHTML = e.target.value;
+  defaultZoomRangeValue = e.target.value;
+  map.setZoom(e.target.value);
+});
+
+markerRange.addEventListener("input", function(e){
+  e.stopPropagation();
+  document.getElementById("maxMarkerText").innerHTML = e.target.value;
+  markerRangeValue = e.target.value;
+});
 
 function mapCurrentPosition(latitude, longitude) {
   map.eachLayer(function (layer) {
@@ -70,6 +220,7 @@ function mapCurrentPosition(latitude, longitude) {
       markerLayer.removeLayer(layer);
     }
   });
+
   let marker = L.marker([latitude, longitude], {icon: currentPositionIcon});
   marker.id = 0;
   markerLayer.addLayer(marker);
@@ -245,6 +396,7 @@ document.getElementById('setDestinationButton').onclick = function(){
 };
 
 const { transformCoordsClient, transformedCoords_publisher, plannedPath_listener } = require('./allDaRos');
+
 function doLatLongTransform(){
   const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("blue")).map(marker => {
     return {
@@ -295,23 +447,23 @@ function doLatLongTransform(){
     document.getElementById("setDestinationButton").innerHTML = "Error calling service";
   });
 }
-const myPolyline = L.polyline([], { color: 'blue' }).addTo(map);
+const pathTraveledLine = L.polyline([], { color: 'blue' }).addTo(traveledPathLayer);
 
 document.getElementById("confirmButt").onclick = function() {
   doLatLongTransform();
-  if (myPolyline.getLatLngs().length > 0) {
-    myPolyline.setLatLngs([]);
-  }
+  // if (myPolyline.getLatLngs().length > 0) {
+  //   myPolyline.setLatLngs([]);
+  // }
 
-  // Clear polyline data from localStorage
-  localStorage.removeItem('polylineData');
+  // // Clear polyline data from localStorage
+  // localStorage.removeItem('polylineData');
 };
 
 // Load polyline data from localStorage
-const polylineData = localStorage.getItem('polylineData');
+const polylineData = localStorage.getItem('pathTraveledData');
 if (polylineData) {
   const latLngs = JSON.parse(polylineData);
-  myPolyline.setLatLngs(latLngs);
+  pathTraveledLine.setLatLngs(latLngs);
 }
 
 let lastPosition = null;
@@ -322,11 +474,11 @@ setInterval(function() {
     if (!lastPosition ||
         Math.abs(latLng.lat - lastPosition.lat) > 0.00001 ||
         Math.abs(latLng.lng - lastPosition.lng) > 0.00001) {
-      myPolyline.addLatLng(latLng);
+      pathTraveledLine.addLatLng(latLng);
       lastPosition = latLng;
 
       // Save polyline data to localStorage
-      localStorage.setItem('polylineData', JSON.stringify(myPolyline.getLatLngs()));
+      localStorage.setItem('pathTraveledData', JSON.stringify(pathTraveledLine.getLatLngs()));
     }
   }
 }, 600);
@@ -419,6 +571,7 @@ plannedPath_listener.subscribe(function (message) {
   plannedPath = message.poses;
 });
 
+let plannedPolyLines = [];
 setInterval(function () {
   if (plannedPath.length > 0 && JSON.stringify(previousPlannedPath) !== JSON.stringify(plannedPath)) {
     const filteredPlannedPath = plannedPath.filter((plan, index) => index % 5 === 0 && !previousPlannedPath.includes(plan));
@@ -438,10 +591,17 @@ setInterval(function () {
     console.log(`Time to process ${filteredPlannedPath.length} poses: ${endTime - startTime} ms`);
 
     const randomColor = getRandomColor();
-    const plannedPolyLine = L.polyline(plannedPolyLineCoords, { color: randomColor }).addTo(map);
+    const plannedPolyLine = L.polyline(plannedPolyLineCoords, { color: randomColor }).addTo(plannedPathLayer);
+    plannedPolyLines.push({plannedPolyLineCoords, randomColor});
+    localStorage.setItem('plannedPathData', JSON.stringify(plannedPolyLines));
     previousPlannedPath = plannedPath;
     console.log(`Planned Polyline: ${plannedPolyLine.getLatLngs()}`);
   }
 }, 200);
+
+localStorage.getItem('plannedPathData') && JSON.parse(localStorage.getItem('plannedPathData')).forEach((plannedPolyLine) => {
+  L.polyline(plannedPolyLine.plannedPolyLineCoords, { color: plannedPolyLine.randomColor }).addTo(plannedPathLayer);
+});
+
 
 

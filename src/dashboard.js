@@ -34,14 +34,17 @@ function updateExpectedSteeringAngle(angle){
   document.getElementById("expectedRightWheelSVG").style.transform = `translate(0%, -112%) rotate(${-angleDeg}deg)`;
 }
 
+document.getElementById("dashPoleCenter").style.transformOrigin = "center center";
 function updateHead(head){
-  document.getElementById("speedValue-2").innerHTML = head;
+  head = head.toFixed(1);
+  document.getElementById("speedValue-2").innerHTML = head + '°';
   document.getElementById("dashPoleCenter").style.transform = `rotate(${head}deg)`;
 }
 
 const { steeringAngle_listener, wheelSpeed_listener, expectedStuffs_listener, head_listener } = require('./allDaRos.js');
 
 steeringAngle_listener.subscribe((message) => {
+  console.log(message);
   updateSteeringAngle(message.position_radians);
   updateActualSteeringAngle(message.position_radians/25.49);
 });
@@ -56,7 +59,7 @@ expectedStuffs_listener.subscribe((message) => {
 });
 
 head_listener.subscribe((message) => {
-  let orient = message.header.pose.pose.orientation;
+  let orient = message.pose.pose.orientation;
   let headingRadians = Math.atan2(2*(orient.w*orient.z + orient.x*orient.y), 1 - 2*(orient.y*orient.y + orient.z*orient.z));
   updateHead(headingRadians * 180/Math.PI);
 });
