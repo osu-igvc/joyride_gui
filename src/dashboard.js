@@ -37,8 +37,14 @@ function updateExpectedSteeringAngle(angle){
 document.getElementById("dashPoleCenter").style.transformOrigin = "center center";
 function updateHead(head){
   head = head.toFixed(1);
+  if (head == 360){
+    head = 0;
+  }
   document.getElementById("speedValue-2").innerHTML = head + '°';
+
+  head = 90 - head;
   document.getElementById("dashPoleCenter").style.transform = `rotate(${head}deg)`;
+
 }
 
 const { steeringAngle_listener, wheelSpeed_listener, expectedStuffs_listener, head_listener } = require('./allDaRos.js');
@@ -70,6 +76,8 @@ document.getElementById("seatBeltIcon").addEventListener("click", () => {
   updateExpectedSpeed(Math.random() * 10);
   updateSpeed(Math.random() * 10);
 });
+
+
 
 
 

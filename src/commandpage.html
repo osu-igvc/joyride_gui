@@ -4,15 +4,17 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>BEFOREtoomanychanges</title>
+    <title>driveModeOverhaul</title>
     <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600&amp;display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Bayon&amp;display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Carrois+Gothic+SC&amp;display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=EB+Garamond&amp;display=swap">
     <link rel="stylesheet" href="assets/css/go_pokesregular.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+Georgian&amp;display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&amp;display=swap">
-    <link rel="stylesheet" href="assets/css/animationstuffs.css">
+    <link rel="stylesheet" href="assets/css/Suit-Regular.css">
+    <link rel="stylesheet" href="assets/css/dash.css">
     <link rel="stylesheet" href="assets/css/leafletstuff.css">
     <link rel="stylesheet" href="assets/css/Navbar-Right-Links-icons.css">
     <link rel="stylesheet" href="assets/css/scrollbar2.css">
@@ -69,30 +71,30 @@
                 <div class="border rounded border-3 border-dark shadowyEdge" style="width: 100%;height: 100%;">
                     <ul class="nav nav-pills nav-justified fs-2" role="tablist" style="width: 100%;height: 7.5%;border-bottom-style: solid;">
                         <li class="nav-item" role="presentation" style="border-right-style: solid;margin: 0;width: 100%;height: 100%;"><a class="nav-link active" role="tab" data-bs-toggle="pill" href="#tab-1" style="height: 100%;width: 100%;font-family: Roboto, sans-serif;">Launch</a></li>
+                        <li class="nav-item" role="presentation" style="margin: 0;"><a class="nav-link" role="tab" data-bs-toggle="pill" href="#tab-3" style="width: 100%;height: 100%;font-family: Roboto, sans-serif;">Presets</a></li>
                         <li class="nav-item" role="presentation" style="border-right-style: solid;margin: 0;"><a class="nav-link" role="tab" data-bs-toggle="pill" href="#tab-2" style="width: 100%;height: 100%;font-family: Roboto, sans-serif;">Test</a></li>
-                        <li class="nav-item" role="presentation" style="margin: 0;"><a class="nav-link" role="tab" data-bs-toggle="pill" href="#tab-3" style="width: 100%;height: 100%;font-family: Roboto, sans-serif;">Shell</a></li>
                     </ul>
                     <div class="tab-content" style="height: 92.5%;width: 100%;">
                         <div class="tab-pane active sysHealthPane" role="tabpanel" id="tab-1">
                             <div style="overflow-y: auto;width: 100%;height: 100%;padding: 3%;">
-                                <div class="vstack gap-1"><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="launch1" type="button">Launch 1</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="launch2" type="button">Launch 2</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="launch3" type="button">Launch 3</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" type="button">Launch 4</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" type="button">Launch 5</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" type="button">Launch 6</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" type="button">Launch 7</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" type="button">Launch 8</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" type="button">Launch 9</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" type="button">Launch 10</button></div>
+                                <div class="vstack gap-1"><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="canBusLaunch" type="button">CAN bus</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="diagnosticsLaunch" type="button">Diagnostics</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="gypsyLaunch" type="button">GPS</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="localizationOdometryLaunch" type="button">Localization/Odometry</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="tootyLidarLaunch" type="button">2d Lidar</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="threeDLidarLaunch" type="button">3D Lidar</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="velocityPPLaunch" type="button">Velocity preprocessor</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="obstacleDetectionLaunch" type="button">Obstacle Detection</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="pedestrianDetectionLaunch" type="button">Pedestrian Detection</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="laneDetectionLaunch" type="button">Lane Detection</button></div>
                             </div>
                         </div>
                         <div class="tab-pane sysHealthPane" role="tabpanel" id="tab-2">
                             <div style="overflow-y: auto;width: 100%;height: 100%;padding: 3%;">
-                                <div class="vstack gap-1"><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="testCBT" type="button">Test 1</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="testCBT-6" type="button">Test 2</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="testCBT-5" type="button">Test 3</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="testCBT-4" type="button">Test 4</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="testCBT-3" type="button">Test 5</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="testCBT-2" type="button">Test 6</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="testCBT-1" type="button">Test 7</button></div>
+                                <div class="vstack gap-1"><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="test1" type="button">Test 1</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="test2" type="button">Test 2</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="test3" type="button">Test 3</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="test4" type="button">Test 4</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="test5" type="button">Test 5</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="test6" type="button">Test 6</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="test7" type="button">Test 7</button></div>
                             </div>
                         </div>
                         <div class="tab-pane sysHealthPane" role="tabpanel" id="tab-3">
                             <div style="overflow-y: auto;width: 100%;height: 100%;padding: 3%;">
-                                <div class="vstack gap-1"><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="testCBT-13" type="button">Open Shell</button></div>
+                                <div class="vstack gap-1"><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="minimalPreset" type="button">Minimal</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="joystickControlPreset" type="button">Joystick Control</button><button class="btn btn-success btn-lg fs-1 border rounded-pill commandsButt gradientThing" id="purePursuitNavigationPreset" type="button">Pure pursuit Navigation</button></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-8" style="height: 100%;">
-                <div class="border rounded border-3 border-dark shadowyEdge logText" id="commandsDiv" style="width: 100%;height: 100%;"><iframe id="iFrameSucks" style="height: 100%;width: 100%;" src="http://localhost:9760"></iframe></div>
+                <div class="border rounded border-3 border-dark shadowyEdge logText" id="commandsDiv" style="width: 100%;height: 100%;"></div>
             </div>
         </div>
         <div class="offcanvas offcanvas-bottom border rounded-0 border-3 border-primary d-xl-flex" tabindex="-1" data-bs-backdrop="false" id="offcanvas-1" style="height: 50%;width: 100%;padding: 0.5%;">
@@ -102,7 +104,7 @@
                 </div>
                 <div class="row" style="width: 100%;height: 60%;">
                     <div class="col d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="width: 100%;height: 100%;padding: 0.5%;"><a class="btn btn-primary fs-1 border rounded border-3 border-primary d-xl-flex justify-content-xl-center align-items-xl-center shadowyEdge" role="button" style="width: 100%;height: 100%;" href="commandpage.html">Commands</a></div>
-                    <div class="col d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="padding: 0.5%;width: 100%;height: 100%;"><a class="btn btn-primary fs-1 border rounded border-3 border-primary d-xl-flex d-xxl-flex justify-content-xl-center align-items-xl-center justify-content-xxl-center align-items-xxl-center shadowyEdge" role="button" style="width: 100%;height: 100%;" id="iHateYou" href="sensorData.html">Sensor Data</a></div>
+                    <div class="col d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="padding: 0.5%;width: 100%;height: 100%;"><a class="btn btn-primary fs-1 border rounded border-3 border-primary d-xl-flex d-xxl-flex justify-content-xl-center align-items-xl-center justify-content-xxl-center align-items-xxl-center shadowyEdge" role="button" style="width: 100%;height: 100%;" href="sensorData.html">Sensor Data</a></div>
                     <div class="col d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="padding: 0.5%;width: 100%;height: 100%;"><a class="btn btn-primary fs-1 text-center border rounded border-3 border-primary d-xl-flex d-xxl-flex justify-content-xl-center align-items-xl-center justify-content-xxl-center align-items-xxl-center shadowyEdge" role="button" style="width: 100%;height: 100%;" href="systemHealth.html">System Health</a></div>
                     <div class="col d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="padding: 0.5%;width: 100%;height: 100%;"><a class="btn btn-primary fs-1 text-center border rounded border-3 border-primary d-xl-flex d-xxl-flex justify-content-xl-center align-items-xl-center justify-content-xxl-center align-items-xxl-center shadowyEdge" role="button" style="width: 100%;height: 100%;" href="waypoints.html">Waypoints</a></div>
                 </div>
@@ -131,7 +133,6 @@
     <script src="launchCommands.js"></script>
     <script src="assets/js/offcanvas.js"></script>
     <script src="swiperNoSwiping.js"></script>
-
 </body>
 
 </html>
