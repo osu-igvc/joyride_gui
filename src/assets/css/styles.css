@@ -182,7 +182,7 @@ body {
   /*-webkit-text-stroke: 1px;*/
   /*-webkit-text-stroke-color: black;*/
   font-weight: bold;
-  --color1: var(--bs-success);
+  --color1: var(--bs-gray-500);
 }
 
 #tabSVG {

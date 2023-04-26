@@ -74,6 +74,7 @@ app.on('activate', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 const { log_listener, ros } = require('./allDaRos.js');
+const { setMaxIdleHTTPParsers } = require('http');
 
 fs.writeFile('./rosLogStuff.txt', '', function(err){if (err) throw err;});
 
@@ -84,6 +85,10 @@ function convertSecondstoTime(seconds) {
   return timeString;
 }
 
+const rosbridge = spawn("ros2", ["launch", "rosbridge_server", "rosbridge_websocket_launch.xml", "port:=9190"]);
+const tileServer = spawn("tileserver-gl", ["--mbtiles", "./src/stilly.mbtiles", "--port", "9154"])
+let waitUntil = new Date(new Date().getTime() + 1.5 * 1000);
+while(waitUntil > new Date()){}
 
 log_listener.subscribe((message) => {
   const messageTimeStamp = message.stamp.sec;
@@ -192,6 +197,12 @@ function yeahItsGenocideTime() {
 
 app.on('before-quit', () => {
   yeahItsGenocideTime();
+  try {
+    rosbridge.kill('SIGINT');
+    tileServer.kill('SIGINT');
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 
