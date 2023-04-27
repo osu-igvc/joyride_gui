@@ -1,6 +1,112 @@
 const { ipcRenderer } = require('electron');
-
 const commandsDiv = document.getElementById("commandsDiv");
+
+const launchConfigs = new Map([
+    [
+        "canBusLaunch",
+    {
+        id: 'canBus',
+        spawn_args: "ros2 launch joyride_bringup CAN.launch.py",
+        buttonId: "canBusLaunch",
+        name: "CAN Bus"
+    }],
+    [
+        "diagnosticsLaunch",
+    {
+        id: "diagnostics",
+        spawn_args: "ros2 launch joyride_bringup joyride_diagnostics.launch.py",
+        buttonId: "diagnosticsLaunch",
+        name: "Diagnostics"
+    }],
+    [
+        "gypsyLaunch",
+    {
+        id: "GPS",
+        spawn_args: "ros2 launch joyride_bringup gps_localization.launch.py",
+        buttonId: "gypsyLaunch",
+        name: "GPS"
+    }],
+    [
+        "localizationOdometryLaunch",
+    {
+        id: "localizationOdometry",
+        spawn_args: "",
+        buttonId: "localizationOdometryLaunch",
+        name: "Localization/Odometry"
+    }],
+    [
+        "tootyLidarLaunch",
+    {
+        id: "2DLidar",
+        spawn_args: "",
+        buttonId: "tootyLidarLaunch",
+        name: "2D Lidar"
+    }],
+    [
+        "threeDLidarLaunch",
+    {
+        id: "3DLidar",
+        spawn_args: "",
+        buttonId: "threeDLidarLaunch",
+        name: "3D Lidar"
+    }],
+    [
+        "velocityPPLaunch",
+    {
+        id: "velocityPreprocessor",
+        spawn_args: "",
+        buttonId: "velocityPPLaunch",
+        name: "Velocity Preprocessor"
+    }],
+    [
+        "obstacleDetectionLaunch",
+    {
+        id: "obstacleDetection",
+        spawn_args: "",
+        buttonId: "obstacleDetectionLaunch",
+        name: "Obstacle Detection"
+    }],
+    [
+        "pedestrianDetectionLaunch",
+    {
+        id: "pedestrianDetection",
+        spawn_args: "",
+        buttonId: "pedestrianDetectionLaunch",
+        name: "Pedestrian Detection"
+    }],
+    [
+        "laneDetectionLaunch",
+    {
+        id: "laneDetection",
+        spawn_args: "",
+        buttonId: "laneDetectionLaunch",
+        name: "Lane Detection"
+    }],
+    [
+        "minimalPreset",
+    {
+        id: "minimal",
+        spawn_args: "ros2, launch, joyride_bringup, joyride_minimal.launch.py",
+        buttonId: "minimalPreset",
+        name: "Minimal"
+    }],
+    [
+        "joystickControlPreset",
+    {
+        id: "joystickControl",
+        spawn_args: "ros2, launch, joyride_bringup, joyride_joystick_control.launch.py",
+        buttonId: "joystickControlPreset",
+        name: "Joystick Control"
+    }],
+    [
+        "purePursuitNavigationPreset",
+    {
+        id: "purePursuitNavigation",
+        spawn_args: "ros2, launch, joyride_bringup, joyride_pure_pursuit_navigation.launch.py",
+        buttonId: "purePursuitNavigationPreset",
+        name: "Pure Pursuit Navigation"
+    }]
+]);
 
 const commandDescriptions = new Map([
     ["canBusLaunch", "Launch nodes to communicate with the CAN bus and receive data from the car"],
@@ -11,8 +117,34 @@ const commandDescriptions = new Map([
 let lastSelected = document.getElementById("canBusLaunch");
 lastSelected.disabled = true;
 commandsDiv.innerHTML = commandDescriptions.get(lastSelected.id);
+let shutdownFlag = false;
+let confirmShutdown = false;
+
 document.getElementById("commandsTabs").addEventListener("click", function(e){
-    if(e.target.classList.contains("commandsButt") && e.target.id != lastSelected.id){
+    if(shutdownFlag && e.target.id != "systemShutdownLaunch"){
+        confirmShutdown = false;
+        document.getElementById("systemShutdownButt").innerHTML = "Shutdown";
+        document.getElementById("systemShutdownButt").style.setProperty("--color1", "var(--bs-danger)");
+        document.getElementById("systemShutdownDiv").style.setProperty("display", "none");
+        commandsDiv.style.removeProperty("display");
+
+        document.getElementById("commandsButts").style.removeProperty("display");
+        document.getElementById("systemShutdownButt").style.setProperty("display", "none");
+    }
+
+    if(e.target.id == "systemShutdownLaunch"){
+        commandsDiv.style.setProperty("display", "none");
+        document.getElementById("systemShutdownDiv").style.removeProperty("display");
+
+        document.getElementById("commandsButts").style.setProperty("display", "none");
+        document.getElementById("systemShutdownButt").style.removeProperty("display");
+        shutdownFlag = true;
+
+        e.target.disabled = true;
+        lastSelected.disabled = false;
+        lastSelected = e.target;
+    }
+    else if(e.target.classList.contains("commandsButt") && e.target.id != lastSelected.id){
         e.target.disabled = true;
         lastSelected.disabled = false;
         commandsDiv.innerHTML = commandDescriptions.get(e.target.id);
@@ -22,128 +154,87 @@ document.getElementById("commandsTabs").addEventListener("click", function(e){
 
 const launchCommand = document.getElementById("launchCommandButt");
 const killCommand = document.getElementById("killCommandButt");
+const shutdownCommand = document.getElementById("systemShutdownButt");
 
-launchCommand.addEventListener("click", function(){
+launchCommand.addEventListener("click", async function(){
     const disabledButton = document.querySelector("button[disabled]");
+    const disabledButtonConfig = launchConfigs.get(disabledButton.id);
     disabledButton.style.setProperty("--color1", "var(--bs-success)");
     // commandsDiv.innerHTML = `Attempting to launch ${disabledButton.innerHTML}`;
     launchCommand.disabled = true;
+
+    const rosRunning = await ipcRenderer.invoke('ros-status', disabledButtonConfig.id);
+
     setTimeout(function(){
+        if (!rosRunning) {
+            ipcRenderer.invoke('launch-ros', disabledButtonConfig).then((output) => {
+                disabledButton.style.setProperty("--color1", "var(--bs-success)");
+                commandsDiv.innerHTML = output;
+            }).catch((error) => {
+                disabledButton.style.setProperty("--color1", "var(--bs-gray-500)");
+                commandsDiv.innerHTML = error;
+            });            
+        } 
         launchCommand.disabled = false;
     }, 500);
 });
 
-killCommand.addEventListener("click", function(){
+killCommand.addEventListener("click", async function(){
     const disabledButton = document.querySelector("button[disabled]");
-    disabledButton.style.setProperty("--color1", "var(--bs-danger)");
-    // commandsDiv.innerHTML = `Attempting to kill ${disabledButton.innerHTML}`;
+    const disabledButtonConfig = launchConfigs.get(disabledButton.id);
+    if(disabledButton.style.getPropertyValue("--color1") == "var(--bs-success)"){
+        disabledButton.style.setProperty("--color1", "var(--bs-danger)");
+    }
+    // commandsDiv.innerHTML = `Attempting to launch ${disabledButton.innerHTML}`;
     killCommand.disabled = true;
+
+    const rosRunning = await ipcRenderer.invoke('ros-status', disabledButtonConfig.id);
     setTimeout(function(){
-        disabledButton.style.setProperty("--color1", "var(--bs-gray-500)");
+        if (rosRunning) {
+            ipcRenderer.invoke('kill-ros', disabledButtonConfig.id).then((output) => {
+                disabledButton.style.setProperty("--color1", "var(--bs-gray-500)");
+                commandsDiv.innerHTML = output;
+            }).catch((error) => {
+                commandsDiv.innerHTML = error;
+            });            
+        }
         killCommand.disabled = false;
     }, 500);
 });
-
-function changeButtonDisplayStatus(button, launchName, status) {
-    if (status === "kill") {
-        button.style.setProperty("--color1", "var(--bs-red)");
-        // button.innerHTML = "Kill " + launchName;
-    } 
-    else if (status === "Launch") {
-        button.style.setProperty("--color1", "var(--bs-success)");
-        // button.innerHTML = "Launch " + launchName;
-    }
-    else if (status === "Nothing") {
-        button.style.setProperty("--color1", "var(--bs-gray-500)");
-        // button.innerHTML = launchName;
+const ROSLIB = require('roslib');
+const { systemShutdownClient } = require('./allDaRos.js');
+shutdownCommand.addEventListener("click", async function(){
+    if(confirmShutdown){
+        shutdownCommand.disabled = true;
+        let request = new ROSLIB.ServiceRequest({
+            string: "onboard_interface",
+            bool: false,
+        });
+    
+        systemShutdownClient.callService(request, function(result) {
+            shutdownCommand.innerHTML = "Shutting Down...";
+            confirmShutdown = false;
+            shutdownCommand.disabled = false;
+        }, function(error) {
+            shutdownCommand.innerHTML = error;
+            shutdownCommand.style.setProperty("--color1", "darkred");
+            confirmShutdown = false;
+            shutdownCommand.disabled = false;
+        });
     }
     else{
-      button.style.setProperty("--color1", "var(--bs-warning)");
-      button.innerHTML = "ERROR";
-      setTimeout(() => {
-        button.style.setProperty("--color1", "var(--bs-gray-500)");
-        button.innerHTML = launchName;
-      }, 1000);
+        shutdownCommand.innerHTML = "Confirm Shutdown";
+        shutdownCommand.style.setProperty("--color1", "#d81e05");
+        confirmShutdown = true;
     }
-}
-  
-// function createRosToggleButton(button, launchConfig, statusElement) {
-//     button.addEventListener("click",  async () => {
-//         // button.style.setProperty("pointer-events", "none");
-//         button.disabled = true;
-//       setTimeout(async () => {
-//         const rosRunning = await ipcRenderer.invoke('ros-status', launchConfig.id);
-  
-//         if (!rosRunning) {
-//           ipcRenderer.invoke('launch-ros', launchConfig)
-//             .then((output) => {
-//               changeButtonDisplayStatus(button, launchConfig.name, "kill");
-//               statusElement.innerHTML = output;
-//             })
-//             .catch((error) => {
-//               statusElement.innerHTML = error;
-//             });
-  
-          
-//         } else {
-//           ipcRenderer.invoke('kill-ros', launchConfig.id)
-//             .then((output) => {
-//               statusElement.innerHTML = output;
-//             })
-//             .catch((error) => {
-//               statusElement.innerHTML = error;
-//             });
-  
-//           changeToKillorLaunch(button, launchConfig.name, "launch");
-//         }
-//         // button.style.setProperty("pointer-events", "auto");
-//         button.disabled = false;
-//       }, 1000);
-//     });
-// }
-
-const { app } = require('@electron/remote');
-const path = require('path');
-
-
-const launchConfigs = [
-    {
-        id: 'canBus',
-        spawn_args: "",
-        buttonId: "canBusLaunch",
-        name: "CAN Bus"
-    },
-    {
-        id: "diagnostics",
-        spawn_args: "",
-        buttonId: "diagnosticsLaunch",
-        name: "Diagnostics"
-    },
-    {
-        id: "GPS",
-        spawn_args: "",
-        buttonId: "gypsyLaunch",
-        name: "GPS"
-    },
-    {
-        id: "LocalizationOdometry",
-        spawn_args: "",
-        buttonId: "localizationOdometryLaunch",
-        name: "Localization/Odometry"
-    }
-];
-
-launchConfigs.forEach((launchConfig) => {
-    const button = document.getElementById(launchConfig.buttonId);
-    createRosToggleButton(button, launchConfig, commandsDiv);
 });
   
 async function updateButtons(){
-    launchConfigs.forEach(async (launchConfig) => {
-      const button = document.getElementById(launchConfig.buttonId);
-      const rosRunning = await ipcRenderer.invoke('ros-status', launchConfig.id);
-      changeButtonDisplayStatus(button, launchConfig.name, rosRunning ? 'kill' : 'Launch');
-    });
+    for(const [key, value] of launchConfigs){
+        const button = document.getElementById(key);
+        const rosRunning = await ipcRenderer.invoke('ros-status', value.id);
+        button.style.setProperty("--color1", rosRunning ? "var(--bs-success)" : "var(--bs-gray-500)");
+    }
 }
 
 updateButtons();

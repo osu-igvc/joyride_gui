@@ -100,6 +100,12 @@ const compressedImage_listener = new ROSLIB.Topic({
     messageType: "sensor_msgs/CompressedImage"
 });
 
+const systemShutdownClient = new ROSLIB.Service({
+    ros: ros,
+    name: '/requestSystemShutdown',
+    serviceType: 'joyride_interfaces/srv/RequestSystemShutdown'
+});
+
 
 
 module.exports = {
@@ -119,7 +125,8 @@ module.exports = {
     expectedStuffs_listener: expectedStuffs_listener,
     plannedPath_listener: plannedPath_listener,
     transformToLLClient: transformToLLClient,
-    head_listener: head_listener
+    head_listener: head_listener,
+    systemShutdownClient: systemShutdownClient
 }
 
 
