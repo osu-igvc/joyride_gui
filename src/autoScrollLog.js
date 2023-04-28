@@ -1,4 +1,4 @@
-const { ipcRenderer } = require("electron");
+// const { ipcRenderer } = require("electron");
 let rosOutDiv = document.getElementById("rosOutDiv");
 let initialDiff = rosOutDiv.scrollHeight - rosOutDiv.scrollTop;
 let rosScrolled = false;

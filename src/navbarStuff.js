@@ -1,4 +1,18 @@
 document.getElementById("navTime").innerHTML = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+document.getElementById("status").style.removeProperty("background");
+document.getElementById("status").style.setProperty("--color1", "var(--bs-success)");
+const { ipcRenderer } = require('electron');
+
+let nagasaki = false;
+ipcRenderer.on("nuke-time", (event, time) => {
+  if(!nagasaki && document.getElementById("systemShutdownLaunch")){
+    nagasaki = true;
+    document.getElementById("systemShutdownLaunch").disabled = true;
+  }
+  document.getElementById("status").style.setProperty("--color1", "var(--bs-danger)");
+  document.getElementById("status").innerHTML = `Shutdown in: ${time}`;
+});
+
 // document.getElementById("status").onclick = () => {window.location.href = "systemHealth.html"};
 const { ros, navSatFix_listener } = require("./allDaRos.js");
 connectionStatus = "closed";
@@ -252,4 +266,8 @@ gps_listener.subscribe((message) => {
       gpsIcon.classList.remove("bounce_me");
     }, 1000);
   }
+});
+
+document.getElementById("joyride").addEventListener("click", function(){
+  location.href = "developer.html";
 });

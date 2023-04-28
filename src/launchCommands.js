@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+// const { ipcRenderer } = require('electron');
 const commandsDiv = document.getElementById("commandsDiv");
 
 const launchConfigs = new Map([
@@ -6,7 +6,7 @@ const launchConfigs = new Map([
         "canBusLaunch",
     {
         id: 'canBus',
-        spawn_args: "ros2 launch joyride_bringup CAN.launch.py",
+        spawn_args: "ros2, launch, joyride_bringup, CAN.launch.py",
         buttonId: "canBusLaunch",
         name: "CAN Bus"
     }],
@@ -14,7 +14,7 @@ const launchConfigs = new Map([
         "diagnosticsLaunch",
     {
         id: "diagnostics",
-        spawn_args: "ros2 launch joyride_bringup joyride_diagnostics.launch.py",
+        spawn_args: "ros2, launch, joyride_bringup, joyride_diagnostics.launch.py",
         buttonId: "diagnosticsLaunch",
         name: "Diagnostics"
     }],
@@ -22,7 +22,7 @@ const launchConfigs = new Map([
         "gypsyLaunch",
     {
         id: "GPS",
-        spawn_args: "ros2 launch joyride_bringup gps_localization.launch.py",
+        spawn_args: "ros2, launch, joyride_bringup, gps_localization.launch.py",
         buttonId: "gypsyLaunch",
         name: "GPS"
     }],
@@ -38,7 +38,7 @@ const launchConfigs = new Map([
         "tootyLidarLaunch",
     {
         id: "2DLidar",
-        spawn_args: "",
+        spawn_args: "ros2, launch, joyride_bringup, lidar2D.launch.py",
         buttonId: "tootyLidarLaunch",
         name: "2D Lidar"
     }],
@@ -105,7 +105,24 @@ const launchConfigs = new Map([
         spawn_args: "ros2, launch, joyride_bringup, joyride_pure_pursuit_navigation.launch.py",
         buttonId: "purePursuitNavigationPreset",
         name: "Pure Pursuit Navigation"
-    }]
+    }],
+    [
+        "sensorsPreset",
+    {
+        id: "sensors",
+        spawn_args: "ros2, launch, joyride_bringup, joyride_sensors.launch.py",
+        buttonId: "sensorsPreset",
+        name: "Sensors"
+    }],
+    [
+        "joystickControlSensorsPreset",
+    {
+        id: "joystickControlSensors",
+        spawn_args: "ros2, launch, joyride_bringup, joyride_joystick_control_sensors.launch.py",
+        buttonId: "joystickControlSensorsPreset",
+        name: "Joystick Control + Sensors"
+    }],
+
 ]);
 
 const commandDescriptions = new Map([
@@ -206,15 +223,14 @@ const { systemShutdownClient } = require('./allDaRos.js');
 shutdownCommand.addEventListener("click", async function(){
     if(confirmShutdown){
         shutdownCommand.disabled = true;
-        let request = new ROSLIB.ServiceRequest({
-            string: "onboard_interface",
-            bool: false,
-        });
+        let request = new ROSLIB.ServiceRequest({});
     
         systemShutdownClient.callService(request, function(result) {
-            shutdownCommand.innerHTML = "Shutting Down...";
-            confirmShutdown = false;
-            shutdownCommand.disabled = false;
+            ipcRenderer.invoke('nuke-start', true).then((output) => {
+
+            }).catch((error) => {
+                console.log(error);
+            });
         }, function(error) {
             shutdownCommand.innerHTML = error;
             shutdownCommand.style.setProperty("--color1", "darkred");

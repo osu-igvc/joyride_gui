@@ -94,16 +94,28 @@ const gps_listener = new ROSLIB.Topic({
     messageType: "joyride_sensors/vectornav/vectornav_msgs/msg/GpsGroup"
 });
 
-const compressedImage_listener = new ROSLIB.Topic({
+const rawCameraStream_listener = new ROSLIB.Topic({
     ros: ros,
     name: "/sensors/cameras/center/image/compressed",
     messageType: "sensor_msgs/CompressedImage"
 });
 
+const laneTrackingStream_listener = new ROSLIB.Topic({
+    ros: ros,
+    name: "/sensors/cameras/lane/image_raw",
+    messageType: "sensor_msgs/CompressedImage"
+});
+
+const pedestrianDetectionStream_listener = new ROSLIB.Topic({
+    ros: ros,
+    name: "/sensors/cameras/pedestrian/image_raw",
+    messageType: "sensor_msgs/CompressedImage"
+});
+
 const systemShutdownClient = new ROSLIB.Service({
     ros: ros,
-    name: '/requestSystemShutdown',
-    serviceType: 'joyride_interfaces/srv/RequestSystemShutdown'
+    name: '/nuke',
+    serviceType: 'std_srvs/srv/Trigger'
 });
 
 
@@ -121,12 +133,14 @@ module.exports = {
     automodeClient: automodeClient,
     navSatFix_listener: navSatFix_listener,
     gps_listener: gps_listener,
-    compressedImage_listener: compressedImage_listener,
+    rawCameraStream_listener: rawCameraStream_listener,
     expectedStuffs_listener: expectedStuffs_listener,
     plannedPath_listener: plannedPath_listener,
     transformToLLClient: transformToLLClient,
     head_listener: head_listener,
-    systemShutdownClient: systemShutdownClient
+    systemShutdownClient: systemShutdownClient,
+    laneTrackingStream_listener: laneTrackingStream_listener,
+    pedestrianDetectionStream_listener: pedestrianDetectionStream_listener
 }
 
 

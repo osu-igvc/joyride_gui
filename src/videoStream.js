@@ -19,13 +19,22 @@
 //     }
 //   }, 1000);
 
-let vStream = document.getElementById("webcamThing");
+let rawCameraStream = document.getElementById("rawCameraStream");
+let laneTrackingStream = document.getElementById("laneTrackingStream");
+let pedestrianDetectionStream = document.getElementById("pedestrianDetectionStream");
 
-const { compressedImage_listener } = require("./allDaRos.js");
+const { rawCameraStream_listener, laneTrackingStream_listener, pedestrianDetectionStream_listener } = require("./allDaRos.js");
 
-compressedImage_listener.subscribe((message) => {
-  let base64Image = "data:image/jpeg;base64," + message.data;
-  vStream.src = base64Image;
+rawCameraStream_listener.subscribe((message) => {
+  rawCameraStream.src = "data:image/jpeg;base64," + message.data;
+});
+
+laneTrackingStream_listener.subscribe((message) => {
+  laneTrackingStream.src = "data:image/jpeg;base64," + message.data;
+});
+
+pedestrianDetectionStream_listener.subscribe((message) => {
+  pedestrianDetectionStream.src = "data:image/jpeg;base64," + message.data;
 });
 
 

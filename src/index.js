@@ -74,6 +74,7 @@ app.on('activate', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 const { log_listener, ros } = require('./allDaRos.js');
+const { subSeconds } = require('date-fns');
 
 fs.writeFile('./rosLogStuff.txt', '', function(err){if (err) throw err;});
 
@@ -180,6 +181,27 @@ ipcMain.handle("ros-status", async (event, id) => {
     return false;
   }
 });
+
+
+let nukeSystemStartTime = null;
+
+ipcMain.handle("nuke-start", async (event, start) => {
+  if(nukeSystemStartTime === null && start === true) {
+    nukeSystemStartTime = new Date().getTime();
+
+  }
+  setInterval(() => {
+    const timeElapsed = Math.round(60 - (new Date().getTime() - nukeSystemStartTime) / 1000);
+    if(timeElapsed <= 0) {
+      win.webContents.send('nuke-time', "Goodbye");
+    }
+    else{
+      win.webContents.send('nuke-time', timeElapsed);
+    }
+  }, 1000);
+});
+
+
 
 function yeahItsGenocideTime() {
   for (const id in rosProcesses) {
