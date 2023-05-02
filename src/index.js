@@ -17,13 +17,24 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
-var win_flag = false;
-var win;
+let win;
+let developerWindow;
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    fullscreen: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
+
+  const backgroundWindow = new BrowserWindow({
+    parent: mainWindow,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
@@ -32,14 +43,14 @@ const createWindow = () => {
   });
 
   enable(mainWindow.webContents)
-
+  mainWindow.webContents.setAudioMuted(true);
   // and load the index.html of the app.
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  backgroundWindow.loadFile(path.join(__dirname, 'background.html'));
   win = mainWindow;
+  developerWindow = backgroundWindow;
   win_flag = true;
-  mainWindow.maximize();
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
+
 };
 
 app.commandLine.appendSwitch("--touch-events");
@@ -51,9 +62,6 @@ app.commandLine.appendSwitch('--top-chrome-touch-ui');
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
@@ -61,20 +69,11 @@ app.on('window-all-closed', () => {
 });
 
 
-app.on('activate', () => {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-
-
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-const { log_listener, ros } = require('./allDaRos.js');
-const { subSeconds } = require('date-fns');
+const { log_listener,  } = require('./allDaRos.js');
+const { NONAME } = require('dns');
 
 fs.writeFile('./rosLogStuff.txt', '', function(err){if (err) throw err;});
 
@@ -86,7 +85,10 @@ function convertSecondstoTime(seconds) {
 }
 
 const rosbridge = spawn("ros2", ["launch", "rosbridge_server", "rosbridge_websocket_launch.xml", "port:=9190"]);
-const tileServer = spawn("tileserver-gl", ["--mbtiles", "./src/stilly.mbtiles", "--port", "9154"])
+const tileServer = spawn("tileserver-gl", ["--mbtiles", "./src/stilly.mbtiles", "--port", "9154"]);
+tileServer.stderr.on('data', function(data) {
+  console.log('stderr: ' + data);
+})
 let waitUntil = new Date(new Date().getTime() + 1.5 * 1000);
 while(waitUntil > new Date()){}
 
@@ -117,7 +119,9 @@ log_listener.subscribe((message) => {
     if (err) throw err;
   });
 
-  win.webContents.send('logData', logMessage);
+  if(!message.msg.includes("position")){
+    win.webContents.send('logData', logMessage);
+  }
 });
 
 
@@ -226,8 +230,111 @@ app.on('before-quit', () => {
   }
 });
 
+// Music stuff
+let musicQueue = [];
+function loadSongs(){
+    const musicDir = path.join(__dirname, './assets/music');
+    fs.readdir(musicDir, (err, files) => {
+        if(err){
+            console.log(err);
+        } else {
+            files.forEach(file => {
+                if(file.endsWith('.mp3')){
+                    musicQueue.push(file);
+                }
+            });
+        }
+    });
+}
+function shuffleQueue(){
+  for(let i = musicQueue.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * i);
+      const temp = musicQueue[i];
+      musicQueue[i] = musicQueue[j];
+      musicQueue[j] = temp;
+  }
+}
+
+function playNextSong(){
+  if(musicQueue.length > 0){
+      const song = musicQueue.shift();
+      developerWindow.webContents.send('play-song', song);
+  }
+}
+
+loadSongs();
+
+// setTimeout(() => {
+//   shuffleQueue();
+//   playNextSong();
+// }, 250);
+
+ipcMain.handle('get-current-audio-state', async (event) => {
+  const backgroundState = new Promise((resolve) => {
+    developerWindow.webContents.send('get-current-audio-state');
+    ipcMain.once('current-audio-state', (event, state) => {
+      resolve(state);
+    });
+  });
+  return backgroundState;
+});
+
+ipcMain.handle('get-queue', async (event) => {
+  return musicQueue;
+});
+
+// ipcMain.handle('remove-song', async (event, song) => {
+//   const index = musicQueue.indexOf(song);
+//   if(index > -1){
+//       musicQueue.splice(index, 1);
+//   }
+// });
+
+ipcMain.handle('move-song-to-position', async (event, song, position) => {
+  const index = musicQueue.indexOf(song);
+  if(index > -1){
+      musicQueue.splice(index, 1);
+      musicQueue.splice(position, 0, song);
+  }
+});
+
+// ipcMain.handle('is-playing', async (event) => {
+//   return new Promise((resolve) => {
+//     developerWindow.webContents.send('is-playing');
+//     ipcMain.once('is-playing', (event, isPlaying) => {
+//       resolve(isPlaying);
+//     });
+//   });
+// });
 
 
+ipcMain.handle('play-song', async (event, song) => {
+  developerWindow.webContents.send('play-song', song);
+});
+
+ipcMain.handle('remove-song', async (event, song) => {
+  musicQueue = musicQueue.filter((s) => s !== song);
+});
+
+ipcMain.handle('stop-song', async (event) => {
+  developerWindow.webContents.send('stop-song');
+});
+
+ipcMain.handle('volume', async (event, volume) => {
+  developerWindow.webContents.send('volume', volume);
+});
+
+ipcMain.handle("seek", async (event, time) => {
+  developerWindow.webContents.send("seek", time);
+});
+
+ipcMain.handle("mute", async (event, mute) => {
+  developerWindow.webContents.send("mute", mute);
+});
+
+ipcMain.handle("resume", async (event) => {
+  developerWindow.webContents.send("resume");
+});
 
   
 

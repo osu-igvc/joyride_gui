@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="assets/css/Navbar-Right-Links-icons.css">
     <link rel="stylesheet" href="assets/css/scrollbar2.css">
     <link rel="stylesheet" href="assets/css/styles.css">
+
 </head>
 
 <body style="background: var(--bs-gray-200);">
@@ -65,24 +66,28 @@
         </div>
     </nav>
     <div class="container-fluid border-primary d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="height: 83vh;padding: 1%;width: 100%;">
-        <div class="row" style="width: 100%;height: 100%;">
-            <div class="col" style="width: 100%; height: 100%;">
+        <div class="row" style="width: 100%;height: 100%;" id="mainrow">
+            <div class="col" style="width: 100%; height: 100%">
                 <h1 class="display-3 text-center" style="width: 100%;height: 10%;">Music Player</h1>
                 <div class="border rounded border-3 border-primary shadowyEdge" style="width: 100%;height: 88%;">
                     <div class="d-xxl-flex flex-column justify-content-xxl-start align-items-xxl-center" style="width: 100%;padding: 1%;border-bottom-style: solid;height: 17%;">
-                        <p class="lead fs-2 text-primary" style="width: 100%;margin: 0;" id="currentSong">No Song Playing</p><span id="currentArtist" style="font-size: 14px; width:100%">Artist</span><audio id="audioPlayer" style="width: 100%; height: 40%" controls="">
+                        <p class="lead fs-1 text-primary" id="currentSong" style="width: 100%;margin: 0;">No Song Playing</p><span id="currentArtist" style="width: 100%;">Artist</span><audio id="audioPlayer" style="width: 100%;/*opacity: 20%;*/height: 40%;" controls="">
                             <source src="./assets/music/Arctic Monkeys - Brianstorm.mp3" type="audio/mpeg">
                         </audio>
                     </div>
                     <div style="width: 100%;height: 83%;padding: 1%;">
-                        <h2 style="width:100%; height:5%">Queue</h2>
-                        <div style="width: 100%; height: 94%; overflow:auto; padding: 0% 0% 1% 0%">
+                        <h2 style="height: 5%;width: 100%;">Queue</h2>
+                        <div style="width: 100%;height: 94%;padding: 0% 0% 1% 0%;overflow: auto;">
                             <ul class="list-group drag-sort-enable" id="songQueue"></ul>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col d-xxl-flex justify-content-xxl-center align-items-xxl-center" style="width: 50%;height: 100%;"></div>
+            <div class="col d-xxl-flex flex-column justify-content-xxl-center align-items-xxl-center" style="width: 50%;height: 100%;">
+                <h1 class="display-3 text-center" style="width: 100%;height: 10%;">Arcade</h1>
+                <div class="border rounded border-3 border-primary d-xxl-flex justify-content-xxl-center align-items-xxl-center shadowyEdge" id="arcadeDiv" style="width: 100%;height: 88%;/*position: absolute;*/">
+</div>
+            </div>
         </div>
         <div class="offcanvas offcanvas-bottom border rounded-0 border-3 border-primary d-xl-flex" tabindex="-1" data-bs-backdrop="false" id="offcanvas-1" style="height: 50%;width: 100%;padding: 0.5%;">
             <div class="col d-xxl-flex flex-column justify-content-xxl-center align-items-xxl-center" style="width: 100%;height: 100%;">
@@ -145,6 +150,7 @@
 </div>
     <script src="assets/bootstrap/js/bootstrap.min.js"></script>
     <script src="navbarStuff.js"></script>
+    <script src="swiperNoSwiping.js"></script>
     <script src="musicPlayer.js"></script>
     <script src="assets/js/offcanvas.js"></script>
 </body>

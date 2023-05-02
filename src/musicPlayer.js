@@ -3,6 +3,8 @@
 //     Array.prototype.map.call(sortableLists, (list) => {enableDragList(list)});
 // }
 
+
+// 
 // function enableDragList(list) {
 //     Array.prototype.map.call(list.children, (item) => {enableDragItem(item)});
 // }
@@ -44,47 +46,73 @@
 
 // (()=> {enableDragSort('drag-sort-enable')})();
 
-const fs = require('fs');
-const path = require('path');
+const audio = document.getElementById("audioPlayer");
 let musicQueue = [];
-function loadSongs(){
-    const musicDir = path.join(__dirname, './assets/music');
-    fs.readdir(musicDir, (err, files) => {
-        if(err){
-            console.log(err);
-        } else {
-            files.forEach(file => {
-                if(file.endsWith('.mp3')){
-                    musicQueue.push(file);
-                }
-            });
-        }
-    });
-}
+ipcRenderer.invoke("get-queue").then((queue) => {
+    musicQueue = queue;
+    updateQueue();
+});
+
+ipcRenderer.invoke("get-current-audio-state").then((state) => {
+    audio.src = state.url;
+    audio.currentTime = state.time;
+    audio.volume = state.volume;
+    audio.muted = state.muted;
+    if(state.paused){
+        audio.pause();
+    }
+    else{
+        audio.play();
+    }
+
+    const currentSong = document.getElementById("currentSong");
+    const currentArtist = document.getElementById("currentArtist");
+    let song = state.url;
+    console.log(song);
+    let splitSong = song.split("-");
+    let artist = splitSong.shift();
+    artist = artist.split("/").pop();
+    artist = artist.replaceAll("%20", " ");
+    song = splitSong.join("-");
+    song = song.replaceAll("%20", " ")
+    song = song.replace(".mp3", "");
+
+    console.log(song);
+    if(song == ""){
+        song = "No Song Playing";
+        artist = "Artist";
+    }
+    currentSong.innerHTML = song;
+    currentArtist.innerHTML = artist;
 
 
-loadSongs();
-setTimeout(() => {
-    shuffleQueue();
-    document.getElementById("songQueue").children[0].remove();
-    playNextSong();
-}, 250);
+});
 
-document.getElementById("audioPlayer").addEventListener("ended", () => {
+audio.addEventListener("volumechange", () => {
+    if(audio.muted){
+        ipcRenderer.invoke("mute", true);
+    }
+    else if(!audio.muted){
+        ipcRenderer.invoke("mute", false);
+    }
+    ipcRenderer.invoke('volume', audio.volume);
+});
+
+audio.addEventListener("pause", () => {
+    ipcRenderer.invoke("stop-song");
+});
+
+audio.addEventListener("play", () => {
+    ipcRenderer.invoke("resume");
+});
+
+audio.addEventListener("ended", () => {
     document.getElementById("songQueue").children[0].remove();
     playNextSong();
 });
+   
 
-//randomize the queue
-function shuffleQueue(){
-    for(let i = musicQueue.length - 1; i > 0; i--){
-        const j = Math.floor(Math.random() * i);
-        const temp = musicQueue[i];
-        musicQueue[i] = musicQueue[j];
-        musicQueue[j] = temp;
-    }
-    updateQueue();
-}
+
 
 //play the next song in the queue
 function playNextSong(){
@@ -97,10 +125,11 @@ function playNextSong(){
         song = splitSong.join("-");
         song = song.replace(".mp3", "");
 
-        const audio = document.getElementById("audioPlayer");
         const fullSong = `${artist}-${song}.mp3`;
-        audio.src = `./assets/music/${fullSong}`;
+        const audioSrc = `./assets/music/${fullSong}`;
+        audio.src = audioSrc;
         audio.play();
+        ipcRenderer.invoke("play-song", audioSrc);
         currentSong.innerHTML = song;
         currentArtist.innerHTML = artist;
     }
@@ -122,9 +151,10 @@ function updateQueue(){
         li.style.setProperty("font-family", "Roboto, sans-serif");
         li.style.setProperty("font-size", "21px");
         li.addEventListener("click", () => {
-            const audio = document.getElementById("audioPlayer");
-            audio.src = `./assets/music/${artist}-${song}.mp3`;
+            const audioSrc = `./assets/music/${artist}-${song}.mp3`;
+            audio.src = audioSrc;
             audio.play();
+            ipcRenderer.invoke("play-song", audioSrc);
             const songName = document.getElementById("currentSong");
             songName.innerHTML = song;
             const artistName = document.getElementById("currentArtist");

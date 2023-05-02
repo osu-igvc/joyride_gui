@@ -50,7 +50,6 @@ function updateHead(head){
 const { steeringAngle_listener, wheelSpeed_listener, expectedStuffs_listener, head_listener } = require('./allDaRos.js');
 
 steeringAngle_listener.subscribe((message) => {
-  console.log(message);
   updateSteeringAngle(message.position_radians);
   updateActualSteeringAngle(message.position_radians/25.49);
 });
