@@ -14,7 +14,7 @@ ipcRenderer.on("volume", (event, volume) => {
     audio.volume = volume;
 });
 
-ipcRenderer.on("seek", (event, time) => {
+ipcRenderer.on("seeked", (event, time) => {
     audio.currentTime = time;
 });
 
@@ -41,4 +41,8 @@ ipcRenderer.on("get-current-audio-state", (event) => {
     backgroundAudio.paused = audio.paused;
 
     ipcRenderer.send("current-audio-state", backgroundAudio);
+});
+
+audio.addEventListener("ended", () => {
+    ipcRenderer.invoke("song-ended");
 });

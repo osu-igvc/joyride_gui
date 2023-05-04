@@ -233,7 +233,7 @@ app.on('before-quit', () => {
 // Music stuff
 let musicQueue = [];
 function loadSongs(){
-    const musicDir = path.join(__dirname, './assets/music');
+    const musicDir = path.join(__dirname, '/assets/music');
     fs.readdir(musicDir, (err, files) => {
         if(err){
             console.log(err);
@@ -257,8 +257,8 @@ function shuffleQueue(){
 
 function playNextSong(){
   if(musicQueue.length > 0){
-      const song = musicQueue.shift();
-      developerWindow.webContents.send('play-song', song);
+      let song = musicQueue.shift();
+      developerWindow.webContents.send('play-song', `./assets/music/${song}`);
   }
 }
 
@@ -324,8 +324,8 @@ ipcMain.handle('volume', async (event, volume) => {
   developerWindow.webContents.send('volume', volume);
 });
 
-ipcMain.handle("seek", async (event, time) => {
-  developerWindow.webContents.send("seek", time);
+ipcMain.handle("seeked", async (event, time) => {
+  developerWindow.webContents.send("seeked", time);
 });
 
 ipcMain.handle("mute", async (event, mute) => {
@@ -336,7 +336,9 @@ ipcMain.handle("resume", async (event) => {
   developerWindow.webContents.send("resume");
 });
 
-  
+ipcMain.handle("song-ended", async (event) => {
+  playNextSong();
+});
 
 
 

@@ -3,7 +3,6 @@
 //     Array.prototype.map.call(sortableLists, (list) => {enableDragList(list)});
 // }
 
-
 // 
 // function enableDragList(list) {
 //     Array.prototype.map.call(list.children, (item) => {enableDragItem(item)});
@@ -111,7 +110,16 @@ audio.addEventListener("ended", () => {
     playNextSong();
 });
    
+audio.addEventListener("seeking", () => {
+    audio.pause();
+    ipcRenderer.invoke("stop-song");
+});
 
+audio.addEventListener("seeked", () => {
+    ipcRenderer.invoke("seeked", audio.currentTime);
+    ipcRenderer.invoke("resume");
+    audio.play();
+});
 
 
 //play the next song in the queue
