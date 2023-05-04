@@ -19,11 +19,11 @@ const launchConfigs = new Map([
         name: "Diagnostics"
     }],
     [
-        "gypsyLaunch",
+        "gpsLaunch",
     {
         id: "GPS",
         spawn_args: "ros2, launch, joyride_bringup, gps_localization.launch.py",
-        buttonId: "gypsyLaunch",
+        buttonId: "gpsLaunch",
         name: "GPS"
     }],
     [
@@ -35,11 +35,11 @@ const launchConfigs = new Map([
         name: "Localization/Odometry"
     }],
     [
-        "tootyLidarLaunch",
+        "twoDLidarLaunch",
     {
         id: "2DLidar",
         spawn_args: "ros2, launch, joyride_bringup, lidar2D.launch.py",
-        buttonId: "tootyLidarLaunch",
+        buttonId: "twoDLidarLaunch",
         name: "2D Lidar"
     }],
     [

@@ -207,7 +207,7 @@ ipcMain.handle("nuke-start", async (event, start) => {
 
 
 
-function yeahItsGenocideTime() {
+function killAllSpawn() {
   for (const id in rosProcesses) {
     const rosProcess = rosProcesses[id];
     if (rosProcess && rosProcess.exitCode === null) {
@@ -221,7 +221,7 @@ function yeahItsGenocideTime() {
 }
 
 app.on('before-quit', () => {
-  yeahItsGenocideTime();
+  killAllSpawn();
   try {
     rosbridge.kill('SIGINT');
     tileServer.kill('SIGINT');

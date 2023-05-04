@@ -105,18 +105,18 @@ function blinkerOnOff(leftBlinker, rightBlinker){
   }
 }
 
-function headHighLightBeamOnOff(timeForHead, timeForHigh){
+function headHighLightBeamOnOff(head, high){
   let headHighDiv = document.getElementById("headHighLightBeamIconDiv");
   let headHigh = document.getElementById("headHighLightBeamIcon");
-  if(timeForHead){
+  if(head){
     headHighDiv.style.setProperty("--color1", 'var(--bs-warning)');
     headHigh.src = "./assets/img/head.svg";
   }
-  if(timeForHigh){
+  if(high){
     headHighDiv.style.setProperty("--color1", 'var(--bs-blue)');
     headHigh.src = "./assets/img/high.svg";
   }
-  if(!timeForHead && !timeForHigh){
+  if(!head && !high){
     headHighDiv.style.setProperty("--color1", 'var(--bs-secondary)');
     headHigh.src = "./assets/img/head.svg";
   }
@@ -238,13 +238,13 @@ driveByWire_listener.subscribe((message) => {
 });
 
 gps_listener.subscribe((message) => {
-  document.getElementById("gypsyIcon_marker").fill = message.fix >= 3 ? 'var(--bs-black)' : '#00FFFFFF';
-  document.getElementById("gypsyIcon_bar1").fill = message.numsats >= 1 ? 'var(--bs-black)' : '#00FFFFFF';
-  document.getElementById("gypsyIcon_bar2").fill = message.numsats >= 2 ? 'var(--bs-black)' : '#00FFFFFF';
-  document.getElementById("gypsyIcon_bar3").fill = message.numsats >= 3 ? 'var(--bs-black)' : '#00FFFFFF';
-  document.getElementById("gypsyIcon_bar4").fill = message.numsats >= 4 ? 'var(--bs-black)' : '#00FFFFFF';
+  document.getElementById("gpsIcon_marker").fill = message.fix >= 3 ? 'var(--bs-black)' : '#00FFFFFF';
+  document.getElementById("gpsIcon_bar1").fill = message.numsats >= 1 ? 'var(--bs-black)' : '#00FFFFFF';
+  document.getElementById("gpsIcon_bar2").fill = message.numsats >= 2 ? 'var(--bs-black)' : '#00FFFFFF';
+  document.getElementById("gpsIcon_bar3").fill = message.numsats >= 3 ? 'var(--bs-black)' : '#00FFFFFF';
+  document.getElementById("gpsIcon_bar4").fill = message.numsats >= 4 ? 'var(--bs-black)' : '#00FFFFFF';
 
-  let gpsIcon = document.getElementById("gypsyIcon");
+  let gpsIcon = document.getElementById("gpsIcon");
   if(message.numsats <= 1 || message.fix < 3){
     gpsIcon.style.setProperty("--color1", 'var(--bs-danger)');
     gpsIcon.classList.add("bounce_me");
