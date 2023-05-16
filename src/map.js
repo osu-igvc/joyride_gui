@@ -224,18 +224,34 @@ function mapCurrentPosition(latitude, longitude) {
 }
 
 let currentPosition = [];
-let currentDestination;
+
 let initialPosition = [];
-let firstPosition = true;
+const { getInitialLLClient } = require('./allDaRos.js');
+
+let initialPositionInterval = setInterval(function(){
+  getInitialLLClient.callService(new ROSLIB.ServiceRequest(), function(result) {
+    if(result.is_valid && result.latitude != 0 && result.longitude != 0){
+      initialPosition = [result.latitude, result.longitude];
+      console.log(initialPosition[0], initialPosition[1]);
+      map.setView(initialPosition, map.getZoom());
+      clearInterval(initialPositionInterval);
+    }
+    else{
+      console.log(result);
+    }
+  });
+}, 1000);
+// let firstPosition = true;
+
 navSatFix_listener.subscribe(function(message) {
   if(message.latitude && message.longitude){
     currentPosition = [message.latitude, message.longitude];
-    if(firstPosition){
-      initialPosition = [message.latitude, message.longitude];
-      console.log(initialPosition[0], initialPosition[1]);
-      map.setView(initialPosition, map.getZoom());
-      firstPosition = false;
-    }
+    // if(firstPosition){
+    //   initialPosition = [message.latitude, message.longitude];
+    //   console.log(initialPosition[0], initialPosition[1]);
+    //   map.setView(initialPosition, map.getZoom());
+    //   firstPosition = false;
+    // }
   }
 });
 
@@ -264,8 +280,7 @@ console.log(savedMarkers)
 if (savedMarkers) {
   savedMarkers.forEach(markerData => {
     if(markerData){
-      currentDestination = [markerData.lat, markerData.lng];
-      const marker = L.marker([markerData.lat, markerData.lng], {icon: defaultIcon});
+      const marker = L.marker([markerData.lat, markerData.lng], {icon: defaultIcon, draggable: true});
       markerLayer.addLayer(marker);
       let latDMS = toDegreesMinutesSeconds(markerData.lat);
       document.getElementById('latDegIn').value = latDMS[0];
@@ -305,10 +320,28 @@ function saveMarkers() {
   }
 }
 
-
 map.on('click', function(e) {
-  L.marker(e.latlng, {icon: defaultIcon}).addTo(markerLayer);
-  currentDestination = [e.latlng.lat, e.latlng.lng];
+  while(markerLayer.getLayers().length > markerRangeValue){
+    markerLayer.removeLayer(markerLayer.getLayers()[markerLayer.getLayers().length - 1]);
+  }
+  const marker = L.marker(e.latlng, {icon: defaultIcon, draggable: true});
+  marker.addEventListener('drag', function(ev){
+    const markerLatDMS = toDegreesMinutesSeconds(marker.getLatLng().lat);
+    document.getElementById('latDegIn').value = markerLatDMS[0];
+    document.getElementById('latMinIn').value = markerLatDMS[1];
+    document.getElementById('latSecIn').value = markerLatDMS[2];
+    document.getElementById('latDirectIn').selectedIndex = markerLatDMS[3];
+
+    const markerLongDMS = toDegreesMinutesSeconds(marker.getLatLng().lng);
+    document.getElementById('longDegIn').value = markerLongDMS[0];
+    document.getElementById('longMinIn').value = markerLongDMS[1];
+    document.getElementById('longSecIn').value = markerLongDMS[2];
+    document.getElementById('longDirectIn').selectedIndex = markerLongDMS[3];
+  });
+
+
+  marker.addTo(markerLayer);
+  
 
   let latDMS = toDegreesMinutesSeconds(e.latlng.lat);
   document.getElementById('latDegIn').value = latDMS[0];
@@ -321,10 +354,6 @@ map.on('click', function(e) {
   document.getElementById('longMinIn').value = longDMS[1];
   document.getElementById('longSecIn').value = longDMS[2];
   document.getElementById('longDirectIn').selectedIndex = longDMS[3];
-
-  while(markerLayer.getLayers().length > markerRangeValue){
-    markerLayer.removeLayer(markerLayer.getLayers()[0]);
-  }
 
 });
 
@@ -348,11 +377,11 @@ function addMarker(){
     longDecDeg = longDecDeg * -1;
   }
 
-  L.marker([latDecDeg, longDecDeg], {icon: defaultIcon}).addTo(markerLayer);
-
   while(markerLayer.getLayers().length > markerRangeValue){
-    markerLayer.removeLayer(markerLayer.getLayers()[0]);
+    markerLayer.removeLayer(markerLayer.getLayers()[markerLayer.getLayers().length - 1]);
   }
+
+  L.marker([latDecDeg, longDecDeg], {icon: defaultIcon, draggable: true}).addTo(markerLayer);
 }
 
 function getDistanceToMarker(lat1, lon1, lat2, lon2){
@@ -373,7 +402,7 @@ function getDistanceToMarker(lat1, lon1, lat2, lon2){
 let heading = document.getElementById('heading').innerHTML.replace('°', '');
 let headingRadians = heading * Math.PI / 180;
 let straightLineDistance = null;
-document.getElementById('setDestinationButton').onclick = function(){
+document.getElementById('setDestinationButton').addEventListener("click", function(){
   addMarker();
   console.log("heading: " + heading);
   saveMarkers();
@@ -381,14 +410,30 @@ document.getElementById('setDestinationButton').onclick = function(){
   if(straightLineDistance){
     map.removeLayer(straightLineDistance);
   }
-
-  straightLineDistance = L.polyline([currentPosition, currentDestination], { color: 'red' }).addTo(map);
   
   heading = document.getElementById('heading').innerHTML.replace('°', '');
   headingRadians = heading * Math.PI / 180;
+  straightLineDistanceToDestinations();
+  // document.getElementById('distanceToDestination').innerHTML = getDistanceToMarker(currentPosition[0], currentPosition[1], currentDestination[0], currentDestination[1]).toFixed(2);
+});
 
-  document.getElementById('distanceToDestination').innerHTML = getDistanceToMarker(currentPosition[0], currentPosition[1], currentDestination[0], currentDestination[1]).toFixed(2);
-};
+let currentDestinationLayer = L.layerGroup().addTo(map);
+function straightLineDistanceToDestinations(){
+  currentDestinationLayer.clearLayers();
+  let first = true;
+  markerLayer.getLayers().forEach(marker => {
+    if(first){
+      if(currentPosition.length > 0){
+        L.polyline([currentPosition, marker.getLatLng()], { color: 'red' }).addTo(currentDestinationLayer);
+      }
+      first = false;
+    }
+    else{
+      L.polyline([previousMarker.getLatLng(), marker.getLatLng()], { color: 'red' }).addTo(currentDestinationLayer);
+    }
+    previousMarker = marker;
+  });
+}
 
 const { transformCoordsClient, transformedCoords_publisher, plannedPath_listener } = require('./allDaRos');
 
@@ -498,7 +543,7 @@ plannedPath_listener.subscribe(function (message) {
 
 let plannedPolyLines = [];
 setInterval(function () {
-  if (plannedPath.length > 0 && JSON.stringify(previousPlannedPath) !== JSON.stringify(plannedPath)) {
+  if (plannedPath.length > 0 && JSON.stringify(previousPlannedPath) !== JSON.stringify(plannedPath) && initialPosition.length > 0) {
     const filteredPlannedPath = plannedPath.filter((plan, index) => index % 5 === 0 && !previousPlannedPath.includes(plan));
     const plannedPolyLineCoords = [];
     const startTime = new Date().getTime();

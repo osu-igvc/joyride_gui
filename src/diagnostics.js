@@ -22,7 +22,7 @@ function focusRowDiagnosticMessages(event){
   diagnosticDiv.innerHTML = '<div class="table-responsive"><table class="table"><thead><tr class="sysRow" style="border-top-style: none;font-size: 24px;font-family: Roboto, sans-serif;"><th class="text-center" style="font-size: 19px;width: 25%;border-right: 3px solid var(--bs-gray-700);">Key</th><th class="text-center" style="font-size: 19px;width: 75%;">Values</th></tr></thead><tbody id="diagnosticTable" style="width: 100%;"></tbody></table></div>';
 }
 
-const { diagnosticMessages_listener } = require('./allDaRos.js');
+// const { diagnosticMessages_listener } = require('./allDaRos.js');
 
 
 function addTab(tabId, paneId, tableId, tableBodyId, title) {

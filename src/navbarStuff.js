@@ -3,6 +3,34 @@ document.getElementById("status").style.removeProperty("background");
 document.getElementById("status").style.setProperty("--color1", "var(--bs-success)");
 const { ipcRenderer } = require('electron');
 
+let alertContainer = document.createElement("div");
+alertContainer.classList.add("alertContainer");
+document.querySelector("nav").appendChild(alertContainer);
+
+let alertDiv = document.createElement("div");
+alertDiv.classList.add("alert", "alert-danger", "alert-dismissible", "show", "fade", "alertDiv", "blink_me");
+alertDiv.setAttribute("role", "alert");
+
+let button = document.createElement("button");
+button.classList.add("btn-close");
+button.setAttribute("type", "button");
+button.addEventListener("click", function(){
+  showAlert(false);
+});
+button.setAttribute("aria-label", "Close");
+alertDiv.appendChild(button);
+alertContainer.appendChild(alertDiv);
+
+function showAlert(show, message="Someone did an oopsie!"){
+  if(show){
+    alertDiv.innerHTML = message;
+    alertDiv.style.visibility = "visible";
+  }
+  else{
+    alertDiv.style.visibility = "hidden";
+  }
+}
+
 let nagasaki = false;
 ipcRenderer.on("nuke-time", (event, time) => {
   if(!nagasaki && document.getElementById("systemShutdownLaunch")){
@@ -67,6 +95,36 @@ ros.on("close", () => {
   connectionStatus = "closed";
 });
 
+const { diagnosticMessages_listener } = require("./allDaRos.js");
+let diagnosticMessages = []; 
+diagnosticMessages_listener.subscribe(function(message){
+  diagnosticMessages = message.status.map((status) => {
+    return {
+      name: status.name.split("/")[2],
+      level: status.level
+    }
+  });
+  let status = "var(--bs-success)";
+  let msg = "No Warnings";
+  let level = 0;
+  diagnosticMessages.forEach((status) => {
+    if(status.level > level){
+      level = status.level;
+      msg = status.name;
+    }
+  });
+  if(level === 0){
+    status = "var(--bs-success)";
+  }
+  else if(level === 1){
+    status = "var(--bs-warning)";
+  }
+  else if(level === 2){
+    status = "var(--bs-danger)";
+  }
+  document.getElementById("status").style.setProperty("--color1", status);
+  document.getElementById("status").innerHTML = msg;
+});
 
 let leftBlinkerID = null;
 let rightBlinkerID = null;
@@ -206,6 +264,7 @@ accessoriesGEMFeedback_listener.subscribe((message) => {
 let allowAutonomy = false;
 
 function eStopOnOff(isEStop){
+  showAlert(isEStop, "E-Stop Pressed");
   document.getElementById("eStopIcon").style.setProperty("--color1", isEStop ? 'var(--bs-danger)' : 'var(--bs-secondary)');
   document.getElementById("eStopIcon").classList.add("bounce_me");
   setTimeout(function(){
@@ -230,11 +289,24 @@ function driveByWireOnOff(isDriveByWire){
   }, 1000);
 }
 
+previousEStop = false;
+previousPBrake = false;
+previousDriveByWire = false;
 driveByWire_listener.subscribe((message) => {
-  eStopOnOff(message.estop_active);
-  pBrakeOnOff(message.parking_brake_active);
-  driveByWireOnOff(message.enable_ready);
+  if(previousEStop != message.estop_active){
+    eStopOnOff(message.estop_active);
+    previousEStop = message.estop_active;
+  }
 
+  if(previousPBrake != message.parking_brake_active){
+    pBrakeOnOff(message.parking_brake_active);
+    previousPBrake = message.parking_brake_active;
+  }
+
+  if(previousDriveByWire != message.enable_ready){
+    driveByWireOnOff(message.enable_ready);
+    previousDriveByWire = message.enable_ready;
+  }
 });
 
 gps_listener.subscribe((message) => {

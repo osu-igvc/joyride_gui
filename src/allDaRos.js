@@ -46,7 +46,7 @@ const diagnosticMessages_listener = new ROSLIB.Topic({
 
 const driveByWire_listener = new ROSLIB.Topic({
     ros: ros,
-    name: "/status/dbw_accessory_controller",
+    name: "/feedback/dbw_system_info",
     messageType: "joyride_interfaces/msg/DriveByWireSystemInfo"
 });
 
@@ -74,6 +74,12 @@ const transformToLLClient = new ROSLIB.Service({
     name: '/toLL',
     serviceType: 'robot_localization/ToLL'
   });
+
+const getInitialLLClient = new ROSLIB.Service({
+    ros: ros,
+    name: '/getInitialLL',
+    serviceType: 'joyride_interfaces/srv/GetOdomOriginLL'
+});
 
 // Automode stuff
 const automodeClient = new ROSLIB.Service({
@@ -140,7 +146,8 @@ module.exports = {
     head_listener: head_listener,
     systemShutdownClient: systemShutdownClient,
     laneTrackingStream_listener: laneTrackingStream_listener,
-    pedestrianDetectionStream_listener: pedestrianDetectionStream_listener
+    pedestrianDetectionStream_listener: pedestrianDetectionStream_listener,
+    getInitialLLClient: getInitialLLClient
 }
 
 
