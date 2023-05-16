@@ -199,6 +199,7 @@ launchCommand.addEventListener("click", async function(){
 killCommand.addEventListener("click", async function(){
     const disabledButton = document.querySelector("button[disabled]");
     const disabledButtonConfig = launchConfigs.get(disabledButton.id);
+    let previousState = disabledButton.style.getPropertyValue("--color1");
     if(disabledButton.style.getPropertyValue("--color1") == "var(--bs-success)"){
         disabledButton.style.setProperty("--color1", "var(--bs-danger)");
     }
@@ -213,6 +214,7 @@ killCommand.addEventListener("click", async function(){
                 commandsDiv.innerHTML = output;
             }).catch((error) => {
                 commandsDiv.innerHTML = error;
+                disabledButton.style.setProperty("--color1", previousState);
             });            
         }
         killCommand.disabled = false;
