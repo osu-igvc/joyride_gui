@@ -186,6 +186,7 @@ map.addEventListener("dragend", function(event){
 
 
 let markerLayer = L.layerGroup().addTo(map);
+let currentPositionLayer = L.layerGroup().addTo(map);
 let traveledPathLayer = L.layerGroup().addTo(map);
 let plannedPathLayer = L.layerGroup().addTo(map);
 let distanceToDestinationLayer = L.layerGroup().addTo(map);
@@ -215,23 +216,11 @@ markerRange.addEventListener("input", function(e){
 });
 
 function mapCurrentPosition(latitude, longitude) {
-  map.eachLayer(function (layer) {
-    if(layer.id == 0){
-      markerLayer.removeLayer(layer);
-    }
-  });
+  currentPositionLayer.clearLayers();
 
   let marker = L.marker([latitude, longitude], {icon: currentPositionIcon});
   marker.id = 0;
-  markerLayer.addLayer(marker);
-}
-
-function removeAllButStartingLayer(keepLayerId){
-  map.eachLayer(function (layer) {
-    if(!layer.id && layer.id != -1 && !keepLayerId.includes(layer.id)){
-      markerLayer.removeLayer(layer);
-    }
-  });
+  currentPositionLayer.addLayer(marker);
 }
 
 let currentPosition = [];
@@ -243,6 +232,7 @@ navSatFix_listener.subscribe(function(message) {
     currentPosition = [message.latitude, message.longitude];
     if(firstPosition){
       initialPosition = [message.latitude, message.longitude];
+      console.log(initialPosition[0], initialPosition[1]);
       map.setView(initialPosition, map.getZoom());
       firstPosition = false;
     }
@@ -317,7 +307,6 @@ function saveMarkers() {
 
 
 map.on('click', function(e) {
-  removeAllButStartingLayer([0]);
   L.marker(e.latlng, {icon: defaultIcon}).addTo(markerLayer);
   currentDestination = [e.latlng.lat, e.latlng.lng];
 
@@ -333,11 +322,13 @@ map.on('click', function(e) {
   document.getElementById('longSecIn').value = longDMS[2];
   document.getElementById('longDirectIn').selectedIndex = longDMS[3];
 
+  while(markerLayer.getLayers().length > markerRangeValue){
+    markerLayer.removeLayer(markerLayer.getLayers()[0]);
+  }
+
 });
 
 function addMarker(){
-  removeAllButStartingLayer([0]);
-
   let latDeg = Number(document.getElementById('latDegIn').value);
   let latMin = Number(document.getElementById('latMinIn').value);
   let latSec = Number(document.getElementById('latSecIn').value);
@@ -358,6 +349,10 @@ function addMarker(){
   }
 
   L.marker([latDecDeg, longDecDeg], {icon: defaultIcon}).addTo(markerLayer);
+
+  while(markerLayer.getLayers().length > markerRangeValue){
+    markerLayer.removeLayer(markerLayer.getLayers()[0]);
+  }
 }
 
 function getDistanceToMarker(lat1, lon1, lat2, lon2){
@@ -459,7 +454,7 @@ document.getElementById("confirmButt").onclick = function() {
   // localStorage.removeItem('polylineData');
 };
 
-// Load polyline data from localStorage
+// Traveled Path Stuffs
 const polylineData = localStorage.getItem('pathTraveledData');
 if (polylineData) {
   const latLngs = JSON.parse(polylineData);
@@ -476,12 +471,75 @@ setInterval(function() {
         Math.abs(latLng.lng - lastPosition.lng) > 0.00001) {
       pathTraveledLine.addLatLng(latLng);
       lastPosition = latLng;
+      
+      let pathTraveledLatLngs = pathTraveledLine.getLatLngs();
+      let pathDuration = traveledPathDurationValue;
+      if(traveledPathDurationValue >= 0 && pathTraveledLatLngs.length * 0.600 > pathDuration){
+        while(pathTraveledLatLngs.length * 0.600 > pathDuration){
+          console.log("Removing point");
+          pathTraveledLatLngs.shift();
+        }
+        pathTraveledLine.setLatLngs(pathTraveledLatLngs);
+      }
 
       // Save polyline data to localStorage
       localStorage.setItem('pathTraveledData', JSON.stringify(pathTraveledLine.getLatLngs()));
     }
   }
 }, 600);
+
+// Planned Stuffs
+let plannedPath = [];
+let previousPlannedPath = [];
+
+plannedPath_listener.subscribe(function (message) {
+  plannedPath = message.poses;
+});
+
+let plannedPolyLines = [];
+setInterval(function () {
+  if (plannedPath.length > 0 && JSON.stringify(previousPlannedPath) !== JSON.stringify(plannedPath)) {
+    const filteredPlannedPath = plannedPath.filter((plan, index) => index % 5 === 0 && !previousPlannedPath.includes(plan));
+    const plannedPolyLineCoords = [];
+    const startTime = new Date().getTime();
+    // console.log(initialPosition);
+    for (const pose of filteredPlannedPath) {
+      let ll = doToLLTransform(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, initialPosition[0], initialPosition[1], 0);
+
+      const latLng = {
+        lat: ll.latitude,
+        lng: ll.longitude
+      };
+
+      plannedPolyLineCoords.push(latLng);
+    }
+    
+    const randomColor = getRandomColor();
+    const plannedPolyLine = L.polyline(plannedPolyLineCoords, { color: randomColor }).addTo(plannedPathLayer);
+    plannedPolyLines.push({plannedPolyLineCoords, randomColor});
+
+    if(maxPlannedPathValue >= 0 && plannedPolyLines.length > maxPlannedPathValue){
+      while(maxPlannedPathValue >= 0 && plannedPolyLines.length > maxPlannedPathValue){
+        plannedPolyLines.shift();
+      }
+      map.removeLayer(plannedPathLayer);
+      plannedPathLayer = L.layerGroup().addTo(map);
+      plannedPolyLines.forEach((plannedPolyLine) => {
+        L.polyline(plannedPolyLine.plannedPolyLineCoords, { color: plannedPolyLine.randomColor }).addTo(plannedPathLayer);
+      });
+    }
+
+    localStorage.setItem('plannedPathData', JSON.stringify(plannedPolyLines));
+    previousPlannedPath = plannedPath;
+    // console.log(`Planned Polyline: ${plannedPolyLine.getLatLngs()}`);
+    const endTime = new Date().getTime();
+    console.log(`Time to process ${filteredPlannedPath.length} poses: ${endTime - startTime} ms`);
+  }
+}, 200);
+
+localStorage.getItem('plannedPathData') && JSON.parse(localStorage.getItem('plannedPathData')).forEach((plannedPolyLine) => {
+  L.polyline(plannedPolyLine.plannedPolyLineCoords, { color: plannedPolyLine.randomColor }).addTo(plannedPathLayer);
+});
 
 function getRandomColor() {
   const letters = '0123456789ABCDEF';
@@ -563,45 +621,3 @@ function doToLLTransform(x, y, z, refLat, refLon, refAlt) {
     altitude: alt,
   };
 }
-
-let plannedPath = [];
-let previousPlannedPath = [];
-
-plannedPath_listener.subscribe(function (message) {
-  plannedPath = message.poses;
-});
-
-let plannedPolyLines = [];
-setInterval(function () {
-  if (plannedPath.length > 0 && JSON.stringify(previousPlannedPath) !== JSON.stringify(plannedPath)) {
-    const filteredPlannedPath = plannedPath.filter((plan, index) => index % 5 === 0 && !previousPlannedPath.includes(plan));
-    const plannedPolyLineCoords = [];
-    const startTime = new Date().getTime();
-    for (const pose of filteredPlannedPath) {
-      let ll = doToLLTransform(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, initialPosition[0], initialPosition[1], 0);
-
-      const latLng = {
-        lat: ll.latitude,
-        lng: ll.longitude
-      };
-
-      plannedPolyLineCoords.push(latLng);
-    }
-    const endTime = new Date().getTime();
-    console.log(`Time to process ${filteredPlannedPath.length} poses: ${endTime - startTime} ms`);
-
-    const randomColor = getRandomColor();
-    const plannedPolyLine = L.polyline(plannedPolyLineCoords, { color: randomColor }).addTo(plannedPathLayer);
-    plannedPolyLines.push({plannedPolyLineCoords, randomColor});
-    localStorage.setItem('plannedPathData', JSON.stringify(plannedPolyLines));
-    previousPlannedPath = plannedPath;
-    console.log(`Planned Polyline: ${plannedPolyLine.getLatLngs()}`);
-  }
-}, 200);
-
-localStorage.getItem('plannedPathData') && JSON.parse(localStorage.getItem('plannedPathData')).forEach((plannedPolyLine) => {
-  L.polyline(plannedPolyLine.plannedPolyLineCoords, { color: plannedPolyLine.randomColor }).addTo(plannedPathLayer);
-});
-
-
-

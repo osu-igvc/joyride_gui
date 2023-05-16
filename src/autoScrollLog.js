@@ -93,8 +93,8 @@ window.onload = function(){
         localLines.forEach(line => {
             addLogLine(line);
         });
-        rosUpdateScroll();
     });
+    rosUpdateScroll();
 }
 
 ipcRenderer.on("logData", (event, message) => {
