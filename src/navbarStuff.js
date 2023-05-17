@@ -199,13 +199,64 @@ function seatbeltOnOff(isSeatbelt){
   }
 }
 
-function heatedSeatsOnOff(){
-  document.getElementById("heatedSeatsIcon").style.setProperty("--color1", 'var(--bs-orange');
-  document.getElementById("heatedSeatsIcon").classList.add("bounce_me");
-  setTimeout(function(){
-    document.getElementById("heatedSeatsIcon").classList.remove("bounce_me");
-  }, 1000);
+let previousTemp = 0;
+function heatedSeatsOnOff(temp){
+  function getColor(value) {
+    // Ensure value is within 0-100
+    value = Math.min(100, Math.max(0, value));
+
+    // Define color ranges
+    const colorRanges = [
+        {start: 0, end: 30, color: {red: 75, green: 191, blue: 115}}, // #4bbf73
+        {start: 30, end: 50, color: {red: 240, green: 173, blue: 78}}, // #f0ad4e
+        {start: 50, end: 70, color: {red: 253, green: 126, blue: 20}}, // #fd7e14
+        {start: 70, end: 100, color: {red: 217, green: 83, blue: 79}} // #d9534f
+    ];
+
+    // Find the color range that the value falls within
+    let startColor, endColor, ratio;
+    for (let i = 0; i < colorRanges.length - 1; i++) {
+        if (value >= colorRanges[i].start && value <= colorRanges[i + 1].end) {
+            startColor = colorRanges[i].color;
+            endColor = colorRanges[i + 1].color;
+            ratio = (value - colorRanges[i].start) / (colorRanges[i + 1].end - colorRanges[i].start);
+            break;
+        }
+    }
+
+    // If no range found (should not happen), default to first color
+    if (!startColor || !endColor) {
+        startColor = endColor = colorRanges[0].color;
+        ratio = 0;
+    }
+
+    // Interpolate between the start and end color
+    let red = Math.round(startColor.red + ratio * (endColor.red - startColor.red));
+    let green = Math.round(startColor.green + ratio * (endColor.green - startColor.green));
+    let blue = Math.round(startColor.blue + ratio * (endColor.blue - startColor.blue));
+
+    // Convert to hex color
+    const hexColor = "#" + ((1 << 24) | ((red << 16) | (green << 8) | blue)).toString(16).slice(1);
+
+    return hexColor;
+  }
+
+  document.getElementById("heatedSeatsIcon").style.setProperty("--color1", getColor(temp));
+  if(temp > 80 && previousTemp < 80){
+    document.getElementById("heatedSeatsIcon").classList.add("bounce_me");
+    setTimeout(function(){
+      document.getElementById("heatedSeatsIcon").classList.remove("bounce_me");
+    }, 1000);
+  }
+  previousTemp = temp;
 }
+let tempCount = 0;
+setInterval(function(){
+  heatedSeatsOnOff(tempCount++);
+  if(tempCount > 100){
+    tempCount = 0;
+  }
+}, 200);
 
 function wipersOnOff(isWipers){
   document.getElementById("wipiesIcon").style.setProperty("--color1", isWipers ? 'var(--bs-blue' : 'var(--bs-secondary)');
