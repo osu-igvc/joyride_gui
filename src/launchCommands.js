@@ -221,19 +221,33 @@ killCommand.addEventListener("click", async function(){
     }, 500);
 });
 const ROSLIB = require('roslib');
-const { systemShutdownClient } = require('./allDaRos.js');
+// const { systemShutdownClient } = require('./allDaRos.js');
+// const { ipcRenderer } = require('electron');
 shutdownCommand.addEventListener("click", async function(){
-    if(confirmShutdown){
-        shutdownCommand.disabled = true;
-        let request = new ROSLIB.ServiceRequest({});
-    
-        systemShutdownClient.callService(request, function(result) {
-            ipcRenderer.invoke('nuke-start', true).then((output) => {
+    if(nagasaki){
+        ipcRenderer.invoke('toggle-nuke', "stop").then((output) => {
+            shutdownCommand.style.setProperty("--color1", "var(--bs-danger)");
+            shutdownCommand.disabled = false;
+            shutdownCommand.innerHTML = "Shutdown";
+            nagasaki = false;
 
-            }).catch((error) => {
-                console.log(error);
-            });
-        }, function(error) {
+            document.getElementById("status").innerHTML = "No Warnings";
+            document.getElementById("status").style.setProperty("--color1", "var(--bs-success)");
+        }
+        ).catch((error) => {
+            shutdownCommand.innerHTML = error;
+            shutdownCommand.style.setProperty("--color1", "darkred");
+            shutdownCommand.disabled = false;
+        });
+    }
+    else if(confirmShutdown){
+        shutdownCommand.disabled = true;
+        ipcRenderer.invoke('toggle-nuke', "start").then((output) => {
+            shutdownCommand.innerHTML = "Cancel Shutdown";
+            shutdownCommand.style.setProperty("--color1", "darkred");
+            confirmShutdown = false;
+            shutdownCommand.disabled = false;
+        }).catch((error) => {
             shutdownCommand.innerHTML = error;
             shutdownCommand.style.setProperty("--color1", "darkred");
             confirmShutdown = false;

@@ -35,7 +35,8 @@ let nagasaki = false;
 ipcRenderer.on("nuke-time", (event, time) => {
   if(!nagasaki && document.getElementById("systemShutdownLaunch")){
     nagasaki = true;
-    document.getElementById("systemShutdownLaunch").disabled = true;
+    document.getElementById("systemShutdownButt").innerHTML = "Cancel Shutdown";
+    document.getElementById("systemShutdownButt").style.setProperty("--color1", "darkred");
   }
   document.getElementById("status").style.setProperty("--color1", "var(--bs-danger)");
   document.getElementById("status").innerHTML = `Shutdown in: ${time}`;
@@ -242,7 +243,7 @@ function heatedSeatsOnOff(temp){
   }
 
   document.getElementById("heatedSeatsIcon").style.setProperty("--color1", getColor(temp));
-  if(temp > 80 && previousTemp < 80){
+  if(temp >= 80 && previousTemp < 80){
     document.getElementById("heatedSeatsIcon").classList.add("bounce_me");
     setTimeout(function(){
       document.getElementById("heatedSeatsIcon").classList.remove("bounce_me");
@@ -256,7 +257,7 @@ setInterval(function(){
   if(tempCount > 100){
     tempCount = 0;
   }
-}, 200);
+}, 250);
 
 function wipersOnOff(isWipers){
   document.getElementById("wipiesIcon").style.setProperty("--color1", isWipers ? 'var(--bs-blue' : 'var(--bs-secondary)');

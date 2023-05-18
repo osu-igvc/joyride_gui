@@ -186,23 +186,39 @@ ipcMain.handle("ros-status", async (event, id) => {
   }
 });
 
-
+const ROSLIB = require('roslib');
+const { systemShutdownClient } = require('./allDaRos.js');
 let nukeSystemStartTime = null;
-
-ipcMain.handle("nuke-start", async (event, start) => {
-  if(nukeSystemStartTime === null && start === true) {
+let nukeCountdown = null;
+let nukeIntervalFlag = false;
+ipcMain.handle("toggle-nuke", async (event, toggle) => {
+  if(nukeSystemStartTime === null && toggle === "start") {
     nukeSystemStartTime = new Date().getTime();
-
+    nukeIntervalFlag = true;
   }
-  setInterval(() => {
-    const timeElapsed = Math.round(60 - (new Date().getTime() - nukeSystemStartTime) / 1000);
-    if(timeElapsed <= 0) {
-      win.webContents.send('nuke-time', "Goodbye");
-    }
-    else{
-      win.webContents.send('nuke-time', timeElapsed);
-    }
-  }, 1000);
+  else if(nukeSystemStartTime !== null && toggle === "stop") {
+    clearInterval(nukeCountdown);
+    nukeSystemStartTime = null;
+    nukeIntervalFlag = false;
+  }
+
+  if(nukeIntervalFlag){
+    nukeCountdown = setInterval(() => {
+      const timeElapsed = Math.round(15 - (new Date().getTime() - nukeSystemStartTime) / 1000);
+      if(timeElapsed <= 0) {
+        systemShutdownClient.callService(new ROSLIB.ServiceRequest({}), function(result) {
+          win.webContents.send('nuke-time', "Goodbye");
+          console.log('Result for service call on ' + systemShutdownClient.name + ': ' + result.success);
+          spawn("sudo", ["shutdown", "now"]);
+        }, function(error) {
+          win.webContents.send('nuke-time', error);
+        });
+      }
+      else{
+        win.webContents.send('nuke-time', timeElapsed);
+      }
+    }, 1000);
+  }
 });
 
 
