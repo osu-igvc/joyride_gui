@@ -23,7 +23,7 @@ const steeringAngle_listener = new ROSLIB.Topic({
 const expectedStuffs_listener = new ROSLIB.Topic({
     ros: ros,
     name: "/cmd_ack",
-    messageType: "ackermann_msgs/AckermannDriveStamped"
+    messageType: "ackermann_msgs/AckermannDrive"
 });
 
 const wheelSpeed_listener = new ROSLIB.Topic({
@@ -97,7 +97,7 @@ const navSatFix_listener = new ROSLIB.Topic({
 const gps_listener = new ROSLIB.Topic({
     ros: ros,
     name: "/vectornav/raw/gps",
-    messageType: "joyride_sensors/vectornav/vectornav_msgs/msg/GpsGroup"
+    messageType: "vectornav_msgs/msg/GpsGroup"
 });
 
 const rawCameraStream_listener = new ROSLIB.Topic({
@@ -124,6 +124,12 @@ const systemShutdownClient = new ROSLIB.Service({
     serviceType: 'std_srvs/srv/Trigger'
 });
 
+const odomResetClient = new ROSLIB.Service({
+    ros: ros,
+    name: '/resetOdom',
+    serviceType: 'std_srvs/srv/Trigger'
+});
+
 
 
 module.exports = {
@@ -147,7 +153,8 @@ module.exports = {
     systemShutdownClient: systemShutdownClient,
     laneTrackingStream_listener: laneTrackingStream_listener,
     pedestrianDetectionStream_listener: pedestrianDetectionStream_listener,
-    getInitialLLClient: getInitialLLClient
+    getInitialLLClient: getInitialLLClient,
+    odomResetClient: odomResetClient
 }
 
 

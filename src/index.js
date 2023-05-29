@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { initialize, enable } = require('@electron/remote/main');
+app.commandLine.appendSwitch('disable-pinch');
 initialize();
 const { spawn } = require('child_process');
 const path = require('path');
@@ -44,6 +45,9 @@ const createWindow = () => {
 
   enable(mainWindow.webContents)
   mainWindow.webContents.setAudioMuted(true);
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.setZoomFactor(1);
+  });
   // and load the index.html of the app.
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
   backgroundWindow.loadFile(path.join(__dirname, 'background.html'));
@@ -72,8 +76,17 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-const { log_listener,  } = require('./allDaRos.js');
-const { NONAME } = require('dns');
+
+// Clear local storage on startup
+const { localStorage } = require('electron-browser-storage');
+app.on('ready', () => {
+  localStorage.removeItem('currentDestinationLayer');
+  localStorage.removeItem('markers');
+  localStorage.removeItem('pathTraveledData');
+  localStorage.removeItem('plannedPathData');
+});
+
+const { log_listener } = require('./allDaRos.js');
 
 fs.writeFile('./rosLogStuff.txt', '', function(err){if (err) throw err;});
 
@@ -124,7 +137,6 @@ log_listener.subscribe((message) => {
   }
 });
 
-
 const rosProcesses = {};
 
 ipcMain.handle('launch-ros', async (event, launchConfig) => {
@@ -147,6 +159,7 @@ ipcMain.handle('launch-ros', async (event, launchConfig) => {
     output += data;
   });
   rosLaunch.stderr.on('data', (data) => {
+    output += "stderr:"
     output += data;
   });
   await new Promise((resolve) => {
@@ -188,6 +201,7 @@ ipcMain.handle("ros-status", async (event, id) => {
 
 const ROSLIB = require('roslib');
 const { systemShutdownClient } = require('./allDaRos.js');
+const { rejects } = require('assert');
 let nukeSystemStartTime = null;
 let nukeCountdown = null;
 let nukeIntervalFlag = false;
@@ -209,7 +223,7 @@ ipcMain.handle("toggle-nuke", async (event, toggle) => {
         systemShutdownClient.callService(new ROSLIB.ServiceRequest({}), function(result) {
           win.webContents.send('nuke-time', "Goodbye");
           console.log('Result for service call on ' + systemShutdownClient.name + ': ' + result.success);
-          spawn("sudo", ["shutdown", "now"]);
+          spawn("systemctl", ["poweroff"]);
         }, function(error) {
           win.webContents.send('nuke-time', error);
         });

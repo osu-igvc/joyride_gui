@@ -223,16 +223,16 @@ function mapCurrentPosition(latitude, longitude) {
   currentPositionLayer.addLayer(marker);
 }
 
-let currentPosition = [];
+let currentPosition = [36.1156, -97.0584];
 
 let initialPosition = [];
-const { getInitialLLClient } = require('./allDaRos.js');
+const { getInitialLLClient, navSatFix_listener } = require('./allDaRos.js');
 
 let initialPositionInterval = setInterval(function(){
   getInitialLLClient.callService(new ROSLIB.ServiceRequest(), function(result) {
     if(result.is_valid && result.latitude != 0 && result.longitude != 0){
       initialPosition = [result.latitude, result.longitude];
-      console.log(initialPosition[0], initialPosition[1]);
+      console.log(`Initial Position: ${initialPosition[0]}, ${initialPosition[1]}`);
       map.setView(initialPosition, map.getZoom());
       clearInterval(initialPositionInterval);
     }
@@ -241,17 +241,10 @@ let initialPositionInterval = setInterval(function(){
     }
   });
 }, 1000);
-// let firstPosition = true;
 
 navSatFix_listener.subscribe(function(message) {
   if(message.latitude && message.longitude){
     currentPosition = [message.latitude, message.longitude];
-    // if(firstPosition){
-    //   initialPosition = [message.latitude, message.longitude];
-    //   console.log(initialPosition[0], initialPosition[1]);
-    //   map.setView(initialPosition, map.getZoom());
-    //   firstPosition = false;
-    // }
   }
 });
 
@@ -275,37 +268,41 @@ function toDegreesMinutesSeconds(coordinate) {
   return [degrees, minutes, seconds, direction];
 }
 
-const savedMarkers = JSON.parse(localStorage.getItem('markers'));
-console.log(savedMarkers)
-if (savedMarkers) {
-  savedMarkers.forEach(markerData => {
-    if(markerData){
-      const marker = L.marker([markerData.lat, markerData.lng], {icon: defaultIcon, draggable: true});
-      markerLayer.addLayer(marker);
-      let latDMS = toDegreesMinutesSeconds(markerData.lat);
-      document.getElementById('latDegIn').value = latDMS[0];
-      document.getElementById('latMinIn').value = latDMS[1];
-      document.getElementById('latSecIn').value = latDMS[2];
-      document.getElementById('latDirectIn').selectedIndex = latDMS[3];
+if(localStorage.getItem('markers') != null){
+  const savedMarkers = JSON.parse(localStorage.getItem('markers'));
+  if (savedMarkers) {
+    savedMarkers.forEach(markerData => {
+      if(markerData){
+        const marker = L.marker([markerData.lat, markerData.lng], {icon: defaultIcon, draggable: true});
+        markerLayer.addLayer(marker);
+        let latDMS = toDegreesMinutesSeconds(markerData.lat);
+        document.getElementById('latDegIn').value = latDMS[0];
+        document.getElementById('latMinIn').value = latDMS[1];
+        document.getElementById('latSecIn').value = latDMS[2];
+        document.getElementById('latDirectIn').selectedIndex = latDMS[3];
+  
+        let longDMS = toDegreesMinutesSeconds(markerData.lng);
+        document.getElementById('longDegIn').value = longDMS[0];
+        document.getElementById('longMinIn').value = longDMS[1];
+        document.getElementById('longSecIn').value = longDMS[2];
+        document.getElementById('longDirectIn').selectedIndex = longDMS[3];
+      }
+    });
+  }
+};
 
-      let longDMS = toDegreesMinutesSeconds(markerData.lng);
-      document.getElementById('longDegIn').value = longDMS[0];
-      document.getElementById('longMinIn').value = longDMS[1];
-      document.getElementById('longSecIn').value = longDMS[2];
-      document.getElementById('longDirectIn').selectedIndex = longDMS[3];
-    }
-  });
-}
-const savedHeading = JSON.parse(localStorage.getItem('heading'));
-if (savedHeading) {
-  console.log(savedHeading);
-  document.getElementById('poleCenter').style.transform = `${savedHeading}`;
-  document.getElementById('heading').innerHTML = `${JSON.parse(localStorage.getItem('headingNum'))}`;
+if(localStorage.getItem('heading') != null){
+  const savedHeading = JSON.parse(localStorage.getItem('heading'));
+  if (savedHeading) {
+    console.log(savedHeading);
+    document.getElementById('poleCenter').style.transform = `${savedHeading}`;
+    document.getElementById('heading').innerHTML = `${JSON.parse(localStorage.getItem('headingNum'))}`;
 
-}
+  }
+};
 
 function saveMarkers() {
-  if(markerLayer.getLayers().length > 1){
+  if(markerLayer.getLayers().length > 0){
     // Extract marker data from layer group
     const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("blue")).map(marker => {
         return {
@@ -321,7 +318,7 @@ function saveMarkers() {
 }
 
 map.on('click', function(e) {
-  while(markerLayer.getLayers().length > markerRangeValue){
+  while(markerLayer.getLayers().length >= markerRangeValue){
     markerLayer.removeLayer(markerLayer.getLayers()[markerLayer.getLayers().length - 1]);
   }
   const marker = L.marker(e.latlng, {icon: defaultIcon, draggable: true});
@@ -339,9 +336,9 @@ map.on('click', function(e) {
     document.getElementById('longDirectIn').selectedIndex = markerLongDMS[3];
   });
 
-
+  console.log(markerLayer.getLayers().length);
   marker.addTo(markerLayer);
-  
+  console.log(markerLayer.getLayers().length);
 
   let latDMS = toDegreesMinutesSeconds(e.latlng.lat);
   document.getElementById('latDegIn').value = latDMS[0];
@@ -377,7 +374,7 @@ function addMarker(){
     longDecDeg = longDecDeg * -1;
   }
 
-  while(markerLayer.getLayers().length > markerRangeValue){
+  while(markerLayer.getLayers().length >= markerRangeValue){
     markerLayer.removeLayer(markerLayer.getLayers()[markerLayer.getLayers().length - 1]);
   }
 
@@ -414,10 +411,15 @@ document.getElementById('setDestinationButton').addEventListener("click", functi
   heading = document.getElementById('heading').innerHTML.replace('°', '');
   headingRadians = heading * Math.PI / 180;
   straightLineDistanceToDestinations();
-  // document.getElementById('distanceToDestination').innerHTML = getDistanceToMarker(currentPosition[0], currentPosition[1], currentDestination[0], currentDestination[1]).toFixed(2);
+  const currentDestination = markerLayer.getLayers()[0].getLatLng()
+
+  document.getElementById('distanceToDestination').innerHTML = getDistanceToMarker(currentPosition[0], currentPosition[1], currentDestination[0], currentDestination[1]).toFixed(2);
 });
 
 let currentDestinationLayer = L.layerGroup().addTo(map);
+if(localStorage.getItem('currentDestinationLayer')){
+  currentDestinationLayer = L.geoJSON(JSON.parse(localStorage.getItem('currentDestinationLayer')), {color: 'red'}).addTo(map);
+}
 function straightLineDistanceToDestinations(){
   currentDestinationLayer.clearLayers();
   let first = true;
@@ -433,12 +435,77 @@ function straightLineDistanceToDestinations(){
     }
     previousMarker = marker;
   });
+  localStorage.setItem('currentDestinationLayer', JSON.stringify(currentDestinationLayer.toGeoJSON()));
 }
 
 const { transformCoordsClient, transformedCoords_publisher, plannedPath_listener } = require('./allDaRos');
 
-function doLatLongTransform(){
-  const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("blue")).map(marker => {
+
+const pathTraveledLine = L.polyline([], { color: 'blue' }).addTo(traveledPathLayer);
+
+// Send markers to ROS
+document.getElementById("confirmButt").addEventListener("click", function() {
+  // const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("blue")).map(marker => {
+  //   return {
+  //     lat: marker.getLatLng().lat,
+  //     lng: marker.getLatLng().lng
+  //   }
+  // });
+  // let markerTransformedCoords = [];
+  // const promises = markers.map(marker => {
+  //   console.log(`Marker Coords: ${marker.lat},  ${marker.lng}`);
+
+  //   let request = new ROSLIB.ServiceRequest({
+  //       ll_point: {
+  //           latitude: marker.lat,
+  //           longitude: marker.lng,
+  //           altitude: 0
+  //       }
+  //   });
+
+  //   return new Promise((resolve, reject) => {
+  //       transformCoordsClient.callService(request, function(result) {
+  //           // Success callback
+  //           resolve(result.map_point);
+  //       }, function(error) {
+  //           // Error callback
+  //           console.error('Error while calling the transformCoordsClient service:', error);
+  //           document.getElementById("setDestinationButton").innerHTML = "Error calling service";
+  //           reject(error);
+  //       });
+  //   });
+  // });
+
+  // Promise.all(promises).then((results) => {
+  //   markerTransformedCoords = results;
+  // }).catch((error) => {
+  //     console.log('Error in processing:', error);
+  //   });
+
+  // const transformedCoords = new ROSLIB.Message({
+  //   header: {
+  //     frame_id: 'map',
+  //   },
+  //   pose: {
+  //     position: {
+  //       x: markerTransformedCoords[0].map_point.x,
+  //       y: markerTransformedCoords[0].map_point.y,
+  //       z: 0
+  //     },
+  //     orientation: {
+  //       x: 0,
+  //       y: 0,
+  //       z: Math.sin(headingRadians/2),
+  //       w: Math.cos(headingRadians/2)
+  //     }
+  //   }
+  // });
+
+  // console.log(`Sent heading: ${headingRadians} radians, ${heading} degrees`);
+  // console.log(`FromLL x: ${transformedCoords.pose.position.x}, y: ${transformedCoords.pose.position.y} w: ${transformedCoords.pose.orientation.w}, z: ${transformedCoords.pose.orientation.z}`);
+  // transformedCoords_publisher.publish(transformedCoords);
+  // document.getElementById("setDestinationButton").innerHTML = "Set Destination";
+  const markers = markerLayer.getLayers().map(marker => {
     return {
       lat: marker.getLatLng().lat,
       lng: marker.getLatLng().lng
@@ -486,18 +553,7 @@ function doLatLongTransform(){
     console.error('Error while calling the transformCoordsClient service:', error);
     document.getElementById("setDestinationButton").innerHTML = "Error calling service";
   });
-}
-const pathTraveledLine = L.polyline([], { color: 'blue' }).addTo(traveledPathLayer);
-
-document.getElementById("confirmButt").onclick = function() {
-  doLatLongTransform();
-  // if (myPolyline.getLatLngs().length > 0) {
-  //   myPolyline.setLatLngs([]);
-  // }
-
-  // // Clear polyline data from localStorage
-  // localStorage.removeItem('polylineData');
-};
+});
 
 // Traveled Path Stuffs
 const polylineData = localStorage.getItem('pathTraveledData');
@@ -521,7 +577,7 @@ setInterval(function() {
       let pathDuration = traveledPathDurationValue;
       if(traveledPathDurationValue >= 0 && pathTraveledLatLngs.length * 0.600 > pathDuration){
         while(pathTraveledLatLngs.length * 0.600 > pathDuration){
-          console.log("Removing point");
+          // console.log("Removing point");
           pathTraveledLatLngs.shift();
         }
         pathTraveledLine.setLatLngs(pathTraveledLatLngs);

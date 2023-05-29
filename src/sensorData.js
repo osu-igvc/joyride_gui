@@ -46,7 +46,7 @@ const chart1Chart = new Chart(chart1Canv, {
             delay: 1000,      // delay of 1000 ms, so upcoming values are known before plotting a line
             pause: false,     // chart is not paused
             ttl: undefined,   // data will be automatically deleted as it disappears off the chart
-            frameRate: 30,    // data points are drawn 30 times every second
+            frameRate: 24,    // data points are drawn 30 times every second
     
             // a callback to update datasets
             onRefresh: chart => {
@@ -94,7 +94,7 @@ const chart2Chart = new Chart(chart2Canv, {
             delay: 1000,      // delay of 1000 ms, so upcoming values are known before plotting a line
             pause: false,     // chart is not paused
             ttl: undefined,   // data will be automatically deleted as it disappears off the chart
-            frameRate: 30,    // data points are drawn 30 times every second
+            frameRate: 24,    // data points are drawn 30 times every second
     
             // a callback to update datasets
             onRefresh: chart => {
@@ -141,7 +141,7 @@ const chart3Chart = new Chart(chart3Canv, {
             delay: 1000,      // delay of 1000 ms, so upcoming values are known before plotting a line
             pause: false,     // chart is not paused
             ttl: undefined,   // data will be automatically deleted as it disappears off the chart
-            frameRate: 30,    // data points are drawn 30 times every second
+            frameRate: 24,    // data points are drawn 30 times every second
     
             // a callback to update datasets
             onRefresh: chart => {

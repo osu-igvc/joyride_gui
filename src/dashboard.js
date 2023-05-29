@@ -59,8 +59,8 @@ wheelSpeed_listener.subscribe((message) => {
 });
 
 expectedStuffs_listener.subscribe((message) => {
-  updateExpectedSteeringAngle(message.drive.steering_angle);
-  updateExpectedSpeed(message.drive.speed);
+  updateExpectedSteeringAngle(message.steering_angle);
+  updateExpectedSpeed(message.speed);
 });
 
 head_listener.subscribe((message) => {

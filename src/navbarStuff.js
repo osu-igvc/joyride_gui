@@ -36,14 +36,14 @@ ipcRenderer.on("nuke-time", (event, time) => {
   if(!nagasaki && document.getElementById("systemShutdownLaunch")){
     nagasaki = true;
     document.getElementById("systemShutdownButt").innerHTML = "Cancel Shutdown";
-    document.getElementById("systemShutdownButt").style.setProperty("--color1", "darkred");
+    document.getElementById("systemShutdownButt").style.setProperty("--color1", "var(--bs-warning)");
   }
   document.getElementById("status").style.setProperty("--color1", "var(--bs-danger)");
   document.getElementById("status").innerHTML = `Shutdown in: ${time}`;
 });
 
 // document.getElementById("status").onclick = () => {window.location.href = "systemHealth.html"};
-const { ros, navSatFix_listener } = require("./allDaRos.js");
+const { ros } = require("./allDaRos.js");
 connectionStatus = "closed";
 let connectRos = setInterval(function(){
   if(ros.isConnected){
@@ -95,37 +95,71 @@ ros.on("close", () => {
   }
   connectionStatus = "closed";
 });
-
 const { diagnosticMessages_listener } = require("./allDaRos.js");
 let diagnosticMessages = []; 
 diagnosticMessages_listener.subscribe(function(message){
+  if(!nagasaki){
   diagnosticMessages = message.status.map((status) => {
     return {
       name: status.name.split("/")[2],
       level: status.level
     }
   });
-  let status = "var(--bs-success)";
+  let overallStatus = "var(--bs-success)";
   let msg = "No Warnings";
   let level = 0;
+  let DBW = false;
+  
+  function handleDBWIcon(color, shouldBounce) {
+    const dbwIcon = document.getElementById("dbwIcon");
+    if (dbwIcon) {
+      dbwIcon.style.setProperty("--color1", color);
+      if (shouldBounce) {
+        dbwIcon.classList.add("bounce_me");
+        setTimeout(function(){
+          dbwIcon.classList.remove("bounce_me");
+        }, 1000);
+      }
+    }
+  }
+
   diagnosticMessages.forEach((status) => {
-    if(status.level > level){
+    if(status.name && status.name.toLowerCase().includes("dbw")){
+      // console.log(DBW);
+      if(status.level == 3 && DBW){
+        handleDBWIcon("var(--bs-danger)", false);
+        DBW = false;
+      }
+      else if(status.level < 3 && !DBW){
+        handleDBWIcon("var(--bs-success)", false);
+        DBW = true;
+      }
+    }
+    if(status.level > level && status.level < 3){
       level = status.level;
       msg = status.name;
     }
   });
   if(level === 0){
-    status = "var(--bs-success)";
+    overallStatus = "var(--bs-success)";
   }
   else if(level === 1){
-    status = "var(--bs-warning)";
+    overallStatus = "var(--bs-warning)";
   }
   else if(level === 2){
-    status = "var(--bs-danger)";
+    overallStatus = "var(--bs-danger)";
   }
-  document.getElementById("status").style.setProperty("--color1", status);
-  document.getElementById("status").innerHTML = msg;
+  else{
+    overallStatus = "var(--bs-gray-500)";
+  }
+  const statusElement = document.getElementById("status");
+  if (statusElement) {
+    statusElement.style.setProperty("--color1", overallStatus);
+    statusElement.innerHTML = msg;
+  }
+  }
 });
+
 
 let leftBlinkerID = null;
 let rightBlinkerID = null;
@@ -334,20 +368,20 @@ function pBrakeOnOff(isPBrake){
 
 function driveByWireOnOff(isDriveByWire){
   allowAutonomy = isDriveByWire;
-  document.getElementById("driveByWireIcon").style.setProperty("--color1", isDriveByWire ? 'var(--bs-success)' : 'var(--bs-danger)');
-  document.getElementById("driveByWireIcon").classList.add("bounce_me");
+  document.getElementById("dbwIcon").style.setProperty("--color1", isDriveByWire ? 'var(--bs-success)' : 'var(--bs-danger)');
+  document.getElementById("dbwIcon").classList.add("bounce_me");
   setTimeout(function(){
-    document.getElementById("driveByWireIcon").classList.remove("bounce_me");
+    document.getElementById("dbwIcon").classList.remove("bounce_me");
   }, 1000);
 }
 
-previousEStop = false;
-previousPBrake = false;
-previousDriveByWire = false;
+let previousEStop = false;
+let previousPBrake = false;
+let previousDriveByWire = false;
 driveByWire_listener.subscribe((message) => {
-  if(previousEStop != message.estop_active){
-    eStopOnOff(message.estop_active);
-    previousEStop = message.estop_active;
+  if(previousEStop != message.estop_pressed){
+    eStopOnOff(message.estop_pressed);
+    previousEStop = message.estop_pressed;
   }
 
   if(previousPBrake != message.parking_brake_active){
@@ -355,43 +389,53 @@ driveByWire_listener.subscribe((message) => {
     previousPBrake = message.parking_brake_active;
   }
 
-  if(previousDriveByWire != message.enable_ready){
-    driveByWireOnOff(message.enable_ready);
-    previousDriveByWire = message.enable_ready;
-  }
+  // if(previousDriveByWire != message.enable_ready){
+  //   driveByWireOnOff(message.enable_ready);
+  //   previousDriveByWire = message.enable_ready;
+  // }
 });
 
+previousFix = 0;
+previousNumSats = 0;
 gps_listener.subscribe((message) => {
-  document.getElementById("gpsIcon_marker").fill = message.fix >= 3 ? 'var(--bs-black)' : '#00FFFFFF';
-  document.getElementById("gpsIcon_bar1").fill = message.numsats >= 1 ? 'var(--bs-black)' : '#00FFFFFF';
-  document.getElementById("gpsIcon_bar2").fill = message.numsats >= 2 ? 'var(--bs-black)' : '#00FFFFFF';
-  document.getElementById("gpsIcon_bar3").fill = message.numsats >= 3 ? 'var(--bs-black)' : '#00FFFFFF';
-  document.getElementById("gpsIcon_bar4").fill = message.numsats >= 4 ? 'var(--bs-black)' : '#00FFFFFF';
+  if(previousFix != message.fix || previousNumSats != message.numsats){
+    document.getElementById("gpsIcon_marker").fill = message.fix >= 3 ? 'var(--bs-black)' : '#00FFFFFF';
+    document.getElementById("gpsIcon_bar1").fill = message.numsats >= 1 ? 'var(--bs-black)' : '#00FFFFFF';
+    document.getElementById("gpsIcon_bar2").fill = message.numsats >= 2 ? 'var(--bs-black)' : '#00FFFFFF';
+    document.getElementById("gpsIcon_bar3").fill = message.numsats >= 3 ? 'var(--bs-black)' : '#00FFFFFF';
+    document.getElementById("gpsIcon_bar4").fill = message.numsats >= 4 ? 'var(--bs-black)' : '#00FFFFFF';
 
-  let gpsIcon = document.getElementById("gpsIcon");
-  if(message.numsats <= 1 || message.fix < 3){
-    gpsIcon.style.setProperty("--color1", 'var(--bs-danger)');
-    gpsIcon.classList.add("bounce_me");
-    setTimeout(function(){
-      gpsIcon.classList.remove("bounce_me");
-    }, 1000);
-  }
-  else if(message.numsats >= 2 && message.numsats <= 3 && message.fix >= 3){
-    gpsIcon.style.setProperty("--color1", 'var(--bs-warning)');
-    gpsIcon.classList.add("bounce_me");
-    setTimeout(function(){
-      gpsIcon.classList.remove("bounce_me");
-    }, 1000);
-  }
-  else{
-    gpsIcon.style.setProperty("--color1", 'var(--bs-success)');
-    gpsIcon.classList.add("bounce_me");
-    setTimeout(function(){
-      gpsIcon.classList.remove("bounce_me");
-    }, 1000);
-  }
+    let gpsIcon = document.getElementById("gpsIcon");
+    if(message.numsats <= 1 || message.fix < 3){
+      gpsIcon.style.setProperty("--color1", 'var(--bs-danger)');
+      gpsIcon.classList.add("bounce_me");
+      setTimeout(function(){
+        gpsIcon.classList.remove("bounce_me");
+      }, 1000);
+    }
+    else if(message.numsats >= 2 && message.numsats <= 3 && message.fix >= 3){
+      gpsIcon.style.setProperty("--color1", 'var(--bs-warning)');
+      gpsIcon.classList.add("bounce_me");
+      setTimeout(function(){
+        gpsIcon.classList.remove("bounce_me");
+      }, 1000);
+    }
+    else{
+      gpsIcon.style.setProperty("--color1", 'var(--bs-success)');
+      gpsIcon.classList.add("bounce_me");
+      setTimeout(function(){
+        gpsIcon.classList.remove("bounce_me");
+      }, 1000);
+    }
+  } 
+  previousFix = message.fix;
+  previousNumSats = message.numsats;
 });
 
 document.getElementById("joyride").addEventListener("click", function(){
   location.href = "developer.html";
+});
+
+document.getElementById("status").addEventListener("click", function(){
+  location.href = "systemHealth.html";
 });

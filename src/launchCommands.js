@@ -131,31 +131,36 @@ const commandDescriptions = new Map([
     ["obstacleDetectionLaunch", "Obstacle Detection"]
 ]);
 
-let lastSelected = document.getElementById("canBusLaunch");
+let lastSelected = document.getElementById("minimalPreset");
 lastSelected.disabled = true;
 commandsDiv.innerHTML = commandDescriptions.get(lastSelected.id);
-let shutdownFlag = false;
+
 let confirmShutdown = false;
-
+const systemShutdownDiv = document.getElementById("systemShutdownDiv");
+const odometryResetDiv = document.getElementById("odometryResetDiv");
 document.getElementById("commandsTabs").addEventListener("click", function(e){
-    if(shutdownFlag && e.target.id != "systemShutdownLaunch"){
-        confirmShutdown = false;
-        document.getElementById("systemShutdownButt").innerHTML = "Shutdown";
-        document.getElementById("systemShutdownButt").style.setProperty("--color1", "var(--bs-danger)");
-        document.getElementById("systemShutdownDiv").style.setProperty("display", "none");
-        commandsDiv.style.removeProperty("display");
-
-        document.getElementById("commandsButts").style.removeProperty("display");
-        document.getElementById("systemShutdownButt").style.setProperty("display", "none");
-    }
-
     if(e.target.id == "systemShutdownLaunch"){
         commandsDiv.style.setProperty("display", "none");
-        document.getElementById("systemShutdownDiv").style.removeProperty("display");
+        systemShutdownDiv.style.removeProperty("display");
+        odometryResetDiv.style.setProperty("display", "none");
 
         document.getElementById("commandsButts").style.setProperty("display", "none");
+        document.getElementById("odometryResetButt").style.setProperty("display", "none");
         document.getElementById("systemShutdownButt").style.removeProperty("display");
         shutdownFlag = true;
+
+        e.target.disabled = true;
+        lastSelected.disabled = false;
+        lastSelected = e.target;
+    }
+    else if(e.target.id == "odometryResetLaunch"){
+        commandsDiv.style.setProperty("display", "none");
+        odometryResetDiv.style.removeProperty("display");
+        systemShutdownDiv.style.setProperty("display", "none");
+        document.getElementById("commandsButts").style.setProperty("display", "none");
+        document.getElementById("odometryResetButt").style.removeProperty("display");
+        document.getElementById("systemShutdownButt").style.setProperty("display", "none");
+        odometryFlag = true;
 
         e.target.disabled = true;
         lastSelected.disabled = false;
@@ -166,6 +171,17 @@ document.getElementById("commandsTabs").addEventListener("click", function(e){
         lastSelected.disabled = false;
         commandsDiv.innerHTML = commandDescriptions.get(e.target.id);
         lastSelected = e.target;
+
+        confirmShutdown = false;
+        document.getElementById("systemShutdownButt").innerHTML = "Shutdown";
+        document.getElementById("systemShutdownButt").style.setProperty("--color1", "var(--bs-danger)");
+        systemShutdownDiv.style.setProperty("display", "none");
+        odometryResetDiv.style.setProperty("display", "none");
+        commandsDiv.style.removeProperty("display");
+
+        document.getElementById("commandsButts").style.removeProperty("display");
+        document.getElementById("odometryResetButt").style.setProperty("display", "none");
+        document.getElementById("systemShutdownButt").style.setProperty("display", "none");
     }
 })
 
@@ -176,26 +192,62 @@ const shutdownCommand = document.getElementById("systemShutdownButt");
 launchCommand.addEventListener("click", async function(){
     const disabledButton = document.querySelector("button[disabled]");
     const disabledButtonConfig = launchConfigs.get(disabledButton.id);
-    disabledButton.style.setProperty("--color1", "var(--bs-success)");
+    disabledButton.style.setProperty("--color1", "var(--bs-warning)");
     // commandsDiv.innerHTML = `Attempting to launch ${disabledButton.innerHTML}`;
     launchCommand.disabled = true;
 
-    const rosRunning = await ipcRenderer.invoke('ros-status', disabledButtonConfig.id);
+    const rosRunning = await ipcRenderer.invoke('ros-status', disabledButtonConfig.id).catch((error) => {
+        disabledButton.style.setProperty("--color1", "var(--bs-gray-500)");
+        commandsDiv.innerHTML = error;
+        throw error;
+    });
 
-    setTimeout(function(){
-        if (!rosRunning) {
-            ipcRenderer.invoke('launch-ros', disabledButtonConfig).then((output) => {
-                disabledButton.style.setProperty("--color1", "var(--bs-success)");
-                commandsDiv.innerHTML = output;
-            }).catch((error) => {
+    
+    if (!rosRunning) {
+        try {
+            const output = await ipcRenderer.invoke('launch-ros', disabledButtonConfig);
+            commandsDiv.innerHTML = output;
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            try {
+                const launched = await ipcRenderer.invoke('ros-status', disabledButtonConfig.id);
+                if(launched){
+                    disabledButton.style.setProperty("--color1", "var(--bs-success)");
+                }
+                else{
+                    disabledButton.style.setProperty("--color1", "var(--bs-gray-500)");
+                }
+            } catch(error) {
                 disabledButton.style.setProperty("--color1", "var(--bs-gray-500)");
                 commandsDiv.innerHTML = error;
-            });            
-        } 
-        launchCommand.disabled = false;
-    }, 500);
+            }
+        } catch (error) {
+            disabledButton.style.setProperty("--color1", "var(--bs-gray-500)");
+            commandsDiv.innerHTML = error;
+        }            
+    } 
+    launchCommand.disabled = false;
 });
-
+// setTimeout(async function(){
+    //     if (!rosRunning) {
+    //         ipcRenderer.invoke('launch-ros', disabledButtonConfig).then(async (output) => {
+    //             commandsDiv.innerHTML = output;
+    //             const launched = await ipcRenderer.invoke('ros-status', disabledButtonConfig.id).catch((error) => {
+    //                 disabledButton.style.setProperty("--color1", "var(--bs-gray-500)");
+    //                 commandsDiv.innerHTML = error;
+    //             });
+    //             if(launched){
+    //                 disabledButton.style.setProperty("--color1", "var(--bs-success)");
+    //             }
+    //             else{
+    //                 disabledButton.style.setProperty("--color1", "var(--bs-gray-500)");
+    //             }
+    //         }).catch((error) => {
+    //             disabledButton.style.setProperty("--color1", "var(--bs-gray-500)");
+    //             commandsDiv.innerHTML = error;
+    //         });            
+    //     } 
+    //     launchCommand.disabled = false;
+    // }, 500);
 killCommand.addEventListener("click", async function(){
     const disabledButton = document.querySelector("button[disabled]");
     const disabledButtonConfig = launchConfigs.get(disabledButton.id);
@@ -220,9 +272,10 @@ killCommand.addEventListener("click", async function(){
         killCommand.disabled = false;
     }, 500);
 });
+
 const ROSLIB = require('roslib');
-// const { systemShutdownClient } = require('./allDaRos.js');
-// const { ipcRenderer } = require('electron');
+const { odomResetClient } = require('./allDaRos.js');
+
 shutdownCommand.addEventListener("click", async function(){
     if(nagasaki){
         ipcRenderer.invoke('toggle-nuke', "stop").then((output) => {
@@ -244,7 +297,7 @@ shutdownCommand.addEventListener("click", async function(){
         shutdownCommand.disabled = true;
         ipcRenderer.invoke('toggle-nuke', "start").then((output) => {
             shutdownCommand.innerHTML = "Cancel Shutdown";
-            shutdownCommand.style.setProperty("--color1", "darkred");
+            shutdownCommand.style.setProperty("--color1", "var(--bs-warning)");
             confirmShutdown = false;
             shutdownCommand.disabled = false;
         }).catch((error) => {
@@ -260,12 +313,37 @@ shutdownCommand.addEventListener("click", async function(){
         confirmShutdown = true;
     }
 });
+const odometryResetButt = document.getElementById("odometryResetButt");
+odometryResetButt.addEventListener("click", async function(){
+    odometryResetButt.disabled = true;
+    setTimeout(async function(){
+        odomResetClient.callService(new ROSLIB.ServiceRequest({}), function(result) {
+            console.log('Result for service call on ' + odomResetClient.name + ': ' + result.success);
+            odometryResetButt.disabled = false;
+        }, function(error) {
+            console.log('Error while calling service on ' + odomResetClient.name + ': ' + error);
+            odometryResetButt.innerHTML = error;
+            odometryResetButt.style.setProperty("--color1", "darkred");
+            setTimeout(function(){
+                odometryResetButt.style.setProperty("--color1", "var(--bs-warning)");
+                odometryResetButt.innerHTML = "Reset Odometry";
+                odometryResetButt.disabled = false;
+            }, 2000);
+        });
+    }, 500);
+});
+
   
 async function updateButtons(){
     for(const [key, value] of launchConfigs){
-        const button = document.getElementById(key);
-        const rosRunning = await ipcRenderer.invoke('ros-status', value.id);
-        button.style.setProperty("--color1", rosRunning ? "var(--bs-success)" : "var(--bs-gray-500)");
+        try {
+            const button = document.getElementById(key);
+            const rosRunning = await ipcRenderer.invoke('ros-status', value.id);
+            button.style.setProperty("--color1", rosRunning ? "var(--bs-success)" : "var(--bs-gray-500)");
+        } catch (error) {
+            console.log(key + " " + error)
+        }
+        
     }
 }
 
