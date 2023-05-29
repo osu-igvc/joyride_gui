@@ -1,7 +1,4 @@
 // const { ipcRenderer } = require("electron");
-let rosOutDiv = document.getElementById("rosOutDiv");
-let initialDiff = rosOutDiv.scrollHeight - rosOutDiv.scrollTop;
-let rosScrolled = false;
 
 let body = document.body;
 let woah = document.createElement("img");
@@ -37,22 +34,21 @@ document.addEventListener('click', function(event) {
     }
 });
 
-  
+let rosOutDiv = document.getElementById("rosOutDiv");
+let initialDiff = rosOutDiv.scrollHeight - rosOutDiv.scrollTop;
+let rosScrolled = false;
 
-function rosUpdateScroll(){
-    if(!rosScrolled){
+function rosUpdateScroll() {
+    if (!rosScrolled) {
         rosOutDiv.scrollTop = rosOutDiv.scrollHeight;
     }
-    initialDiff = rosOutDiv.scrollHeight - rosOutDiv.scrollTop;
 }
 
+const scrollBuffer = 50;  // Buffer in pixels
+
 rosOutDiv.onscroll = function(){
-    if (rosOutDiv.scrollTop  + 1.1*initialDiff >= rosOutDiv.scrollHeight){
-        rosScrolled = false;
-    }
-    else{
-        rosScrolled = true;
-    }
+    let atBottom = (rosOutDiv.scrollHeight - rosOutDiv.clientHeight - rosOutDiv.scrollTop) <= scrollBuffer;
+    rosScrolled = !atBottom;
 };
   
 
@@ -83,6 +79,10 @@ function addLogLine(message){
     rosOutDiv.appendChild(span); 
 }
 
+document.getElementById("rosOutTab").addEventListener("click", () => {
+    rosUpdateScroll();
+});
+
 window.onload = function(){
     let fs = require("fs");
     let localLines;
@@ -93,13 +93,13 @@ window.onload = function(){
         localLines.forEach(line => {
             addLogLine(line);
         });
+        setTimeout(rosUpdateScroll, 0);  // put this inside readFile's callback
     });
-    rosUpdateScroll();
 }
 
 ipcRenderer.on("logData", (event, message) => {
     addLogLine(message);
-    rosUpdateScroll();
+    setTimeout(rosUpdateScroll, 0);
 });
 
 
