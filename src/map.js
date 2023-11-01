@@ -152,7 +152,7 @@ document.getElementById("clearMarkerButt").addEventListener("click", function(ev
 // Map Settings End
 
 
-const map = L.map('mapDiv',{zoomControl: false}).setView([36.11, -97.058], 18);
+const map = L.map('mapDiv',{zoomControl: false}).setView([42.66843276069138, -83.2178426227023], defaultZoomRangeValue);
 mapDiv.classList.remove("placeholder");
 mapDiv.classList.add("swiper-no-swiping");
 const tileUrl = 'http://localhost:9154/styles/basic-preview/{z}/{x}/{y}.png'; // path to your MBTiles file
@@ -223,7 +223,8 @@ function mapCurrentPosition(latitude, longitude) {
   currentPositionLayer.addLayer(marker);
 }
 
-let currentPosition = [36.1156, -97.0584];
+// let currentPosition = [36.1156, -97.0584];
+let currentPosition = [];
 
 let initialPosition = [];
 const { getInitialLLClient, navSatFix_listener } = require('./allDaRos.js');
@@ -439,72 +440,102 @@ function straightLineDistanceToDestinations(){
 }
 
 const { transformCoordsClient, transformedCoords_publisher, plannedPath_listener } = require('./allDaRos');
+// const { ipcRenderer } = require('electron');
 
 
 const pathTraveledLine = L.polyline([], { color: 'blue' }).addTo(traveledPathLayer);
 
-// Send markers to ROS
+/*
+This is code for multiple waypoints but it did not work and we ain't qualifying anyway so commenting it out and reverting to single waypoint
+*/
+// Send markers to the main process to be handled
+// let poseArray = [];
+// document.getElementById("confirmButt").addEventListener("click", function() {
+//   const markers = markerLayer.getLayers().map(marker => {
+//     return {
+//       lat: marker.getLatLng().lat,
+//       lng: marker.getLatLng().lng
+//     }
+//   });
+//   let markerTransformedCoords = [];
+//   const promises = markers.map(marker => {
+//     console.log(`Marker Coords: ${marker.lat},  ${marker.lng}`);
+
+//     let request = new ROSLIB.ServiceRequest({
+//         ll_point: {
+//             latitude: marker.lat,
+//             longitude: marker.lng,
+//             altitude: 0
+//         }
+//     });
+
+//     return new Promise((resolve, reject) => {
+//         transformCoordsClient.callService(request, function(result) {
+//             // Success callback
+//             resolve(result.map_point);
+//         }, function(error) {
+//             // Error callback
+//             console.error('Error while calling the transformCoordsClient service:', error);
+//             document.getElementById("setDestinationButton").innerHTML = "Error calling service";
+//             reject(error);
+//         });
+//     });
+//   });
+
+//   Promise.all(promises).then((results) => {
+//     markerTransformedCoords = results;
+//     console.log(markerTransformedCoords);
+
+//     // Loop through all markers
+//     markerTransformedCoords.forEach((coord, index) => {
+//       console.log(coord);
+//       let nextHeadingRadians;
+
+//       // If this is not the last marker, calculate the heading to the next marker
+//       if (index < markerTransformedCoords.length - 1) {
+//         let dx = markerTransformedCoords[index + 1].x - coord.x;
+//         let dy = markerTransformedCoords[index + 1].y - coord.y;
+//         nextHeadingRadians = Math.atan2(dy, dx);
+//         nextHeadingRadians = nextHeadingRadians < 0 ? 2*Math.PI + nextHeadingRadians : nextHeadingRadians
+//       }
+//       else{
+//         // Use the inputted final orientation if this is the last marker
+//         nextHeadingRadians = headingRadians;
+//       }
+
+//       const transformedCoords = new ROSLIB.Message({
+//           header: {
+//               frame_id: 'map',
+//           },
+//           pose: {
+//               position: {
+//                   x: coord.x,
+//                   y: coord.y,
+//                   z: 0
+//               },
+//               orientation: {
+//                   x: 0,
+//                   y: 0,
+//                   z: Math.sin(nextHeadingRadians / 2),
+//                   w: Math.cos(nextHeadingRadians / 2)
+//               }
+//           }
+//       });
+
+//       console.log(`Sent heading: ${nextHeadingRadians} radians, ${nextHeadingRadians * 180/Math.PI} degrees`);
+//       console.log(`FromLL x: ${transformedCoords.pose.position.x}, y: ${transformedCoords.pose.position.y} w: ${transformedCoords.pose.orientation.w}, z: ${transformedCoords.pose.orientation.z}`);
+//       poseArray.push(transformedCoords);
+//     });
+
+//     document.getElementById("setDestinationButton").innerHTML = "Set Destination";
+//     ipcRenderer.send('goal-poses', poseArray);
+
+//   }).catch((error) => {
+//     console.log('Error in processing:', error);
+//   });
+// });
+
 document.getElementById("confirmButt").addEventListener("click", function() {
-  // const markers = markerLayer.getLayers().filter(marker => !marker.options.icon.options.iconUrl.includes("blue")).map(marker => {
-  //   return {
-  //     lat: marker.getLatLng().lat,
-  //     lng: marker.getLatLng().lng
-  //   }
-  // });
-  // let markerTransformedCoords = [];
-  // const promises = markers.map(marker => {
-  //   console.log(`Marker Coords: ${marker.lat},  ${marker.lng}`);
-
-  //   let request = new ROSLIB.ServiceRequest({
-  //       ll_point: {
-  //           latitude: marker.lat,
-  //           longitude: marker.lng,
-  //           altitude: 0
-  //       }
-  //   });
-
-  //   return new Promise((resolve, reject) => {
-  //       transformCoordsClient.callService(request, function(result) {
-  //           // Success callback
-  //           resolve(result.map_point);
-  //       }, function(error) {
-  //           // Error callback
-  //           console.error('Error while calling the transformCoordsClient service:', error);
-  //           document.getElementById("setDestinationButton").innerHTML = "Error calling service";
-  //           reject(error);
-  //       });
-  //   });
-  // });
-
-  // Promise.all(promises).then((results) => {
-  //   markerTransformedCoords = results;
-  // }).catch((error) => {
-  //     console.log('Error in processing:', error);
-  //   });
-
-  // const transformedCoords = new ROSLIB.Message({
-  //   header: {
-  //     frame_id: 'map',
-  //   },
-  //   pose: {
-  //     position: {
-  //       x: markerTransformedCoords[0].map_point.x,
-  //       y: markerTransformedCoords[0].map_point.y,
-  //       z: 0
-  //     },
-  //     orientation: {
-  //       x: 0,
-  //       y: 0,
-  //       z: Math.sin(headingRadians/2),
-  //       w: Math.cos(headingRadians/2)
-  //     }
-  //   }
-  // });
-
-  // console.log(`Sent heading: ${headingRadians} radians, ${heading} degrees`);
-  // console.log(`FromLL x: ${transformedCoords.pose.position.x}, y: ${transformedCoords.pose.position.y} w: ${transformedCoords.pose.orientation.w}, z: ${transformedCoords.pose.orientation.z}`);
-  // transformedCoords_publisher.publish(transformedCoords);
-  // document.getElementById("setDestinationButton").innerHTML = "Set Destination";
   const markers = markerLayer.getLayers().map(marker => {
     return {
       lat: marker.getLatLng().lat,

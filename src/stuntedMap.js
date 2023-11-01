@@ -2,9 +2,9 @@ const L = require('leaflet');
 const mapDiv = document.getElementById("stuntedMap");
 
 // Map settings
-let maxPlannedPathValue = 0;
-let traveledPathDurationValue = 0;
-let defaultZoomRangeValue = 0;
+let maxPlannedPathValue = -1;
+let traveledPathDurationValue = -1;
+let defaultZoomRangeValue = 18;
 
 // Load map settings
 if(localStorage.getItem("mapSettings")){
@@ -15,7 +15,7 @@ if(localStorage.getItem("mapSettings")){
 }
 
 // Map Initialization
-const map = L.map('stuntedMap',{zoomControl: false, dragging: false, boxZoom: false, keyboard: false, scrollWheelZoom: false, touchZoom: false}).setView([36.11, -97.058], 19);
+const map = L.map('stuntedMap',{zoomControl: false, dragging: false, boxZoom: false, keyboard: false, scrollWheelZoom: false, touchZoom: false}).setView([42.66843276069138, -83.2178426227023], defaultZoomRangeValue);
 // mapDiv.classList.remove("placeholder");
 // mapDiv.classList.add("swiper-no-swiping");
 // mapDiv.style.removeProperty("position");

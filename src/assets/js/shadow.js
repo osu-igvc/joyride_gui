@@ -42,6 +42,7 @@ driveByWire_listener.subscribe(function(message) {
 // drive mode setup stuffs
 let disableInterval = null;
 driveModeButt.addEventListener("click", function() {
+    canvasGoAway = false;
     if(presetSelected && !isAutoMode){
         driveHead.hidden = true;
         drivePushButtHead.hidden = true;
@@ -150,7 +151,8 @@ function changeDriveModeButt(driveModeStatus){
     }
 }
 
-function makeAutoModeEnableRequest(driveMode){
+let canvasGoAway = false;
+function makeAutoModeEnableRequest(){
     drivePushButtHead.style.setProperty("color", "var(--bs-black)");
     let request = new ROSLIB.ServiceRequest({
         sender_name: "onboard_interface",
@@ -162,8 +164,9 @@ function makeAutoModeEnableRequest(driveMode){
             drivePushButtHead.style.setProperty("color", "var(--bs-black)");
             drivePushButtHead.innerHTML = "Press Automode Button";
             drivePushButtHead.classList.add("blink_me");
+            canvasGoAway = true;
             clearInterval(autoModeInterval);
-            changeDriveModeButt(driveMode);
+            // changeDriveModeButt(driveMode);
         }
         else if(maxSucks == 1){
             drivePushButtHead.style.setProperty("color", "var(--bs-warning)");
@@ -198,8 +201,8 @@ function makeAutoModeEnableRequest(driveMode){
 
 function makeAutoModeDisableRequest(){
     let request = new ROSLIB.ServiceRequest({
-        string: "onboard_interface",
-        bool: false,
+        sender_name: "onboard_interface",
+        set_auto_enabled: false,
     });
 
     automodeClient.callService(request, function(result) {
@@ -221,7 +224,12 @@ function makeAutoModeDisableRequest(){
             driveModeButt.innerHTML = "Got value other than 0 - 3???";;
             driveModeButt.style.setProperty("--color1", "var(--bs-danger)");
             clearInterval(disableInterval);
+            setTimeout(function(){
+                driveModeButt.innerHTML = `Exit ${presetSelected} mode`;
+                driveModeButt.style.setProperty("--color1", "var(--bs-gray");
+            }, 3000);
         }
+        
     }, function(error){
             if(error.includes("Service") && error.includes("does not exist")){
                 drivePushButtHead.style.setProperty("color", "var(--bs-danger)");
@@ -240,20 +248,20 @@ function makeAutoModeDisableRequest(){
 setInterval(function(){
     if(isEnableReady && isAutoButtonPressed){
         if(currentDriveMode == "Autonomy"){
-            changeToggleButton("Autonomy");
-            driveImg.src = "./assets/img/DriveMode/driveModeAutonomy.svg";
-            driveImg.classList.add("bounce_me");
-            setTimeout(function(){
-                driveImg.classList.remove("bounce_me");
-            }, 1000);
+            // changeToggleButton("Autonomy");
+            changeDriveModeButt("Autonomous");
         }
         else if(currentDriveMode == "Joystick"){
-            changeToggleButton("Joystick");
-            driveImg.src = "./assets/img/DriveMode/driveModeJoystick.svg";
-            driveImg.classList.add("bounce_me");
-            setTimeout(function(){
-                driveImg.classList.remove("bounce_me");
-            }, 1000);
+            // changeToggleButton("Joystick");
+            changeDriveModeButt("Joystick");
+            // driveImg.src = "./assets/img/DriveMode/driveModeJoystick.svg";
+            // driveImg.classList.add("bounce_me");
+            // setTimeout(function(){
+            //     driveImg.classList.remove("bounce_me");
+            // }, 1000);
+        }
+        if(canvasGoAway){
+            shadowCanvUtil.hide();
         }
     }
 }, 1000);

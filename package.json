@@ -1,12 +1,11 @@
 {
-  "name": "joyridecbt",
-  "productName": "joyridecbt",
+  "name": "joyridegui",
+  "productName": "joyridegui",
   "version": "1.0.0",
-  "description": "Closed beta test for Joyride",
+  "description": "GUI for Joyride",
   "main": "src/index.js",
   "files": [
-    "rosLogStuff.txt",
-    "src/stilly.mbtiles"
+    "rosLogStuff.txt"
   ],
   "scripts": {
     "start": "electron-forge start",
@@ -14,12 +13,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
-    "tileserver": "tileserver-gl --mbtiles ./src/stilly.mbtiles --port 9154"
-  },
-  "build": {
-    "files": [
-      "src/stilly.mbtiles"
-    ]
+    "tileserver": "tileserver-gl --mbtiles ./src/rochesty.mbtiles --port 9154"
   },
   "keywords": [],
   "author": "isaac",

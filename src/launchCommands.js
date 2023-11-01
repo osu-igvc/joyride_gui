@@ -102,7 +102,7 @@ const launchConfigs = new Map([
         "purePursuitNavigationPreset",
     {
         id: "purePursuitNavigation",
-        spawn_args: "ros2, launch, joyride_bringup, joyride_pure_pursuit_navigation.launch.py",
+        spawn_args: "ros2, launch, joyride_bringup, joyride_purepursuit.launch.py",
         buttonId: "purePursuitNavigationPreset",
         name: "Pure Pursuit Navigation"
     }],
@@ -128,7 +128,8 @@ const launchConfigs = new Map([
 const commandDescriptions = new Map([
     ["canBusLaunch", "Launch nodes to communicate with the CAN bus and receive data from the car"],
     ["diagnosticsLaunch", "Diagnostics"],
-    ["obstacleDetectionLaunch", "Obstacle Detection"]
+    ["obstacleDetectionLaunch", "Obstacle Detection"],
+    ["minimalPreset", "Default launch to set up the vehicle. All other presets are built upon this"]
 ]);
 
 let lastSelected = document.getElementById("minimalPreset");
@@ -207,7 +208,7 @@ launchCommand.addEventListener("click", async function(){
         try {
             const output = await ipcRenderer.invoke('launch-ros', disabledButtonConfig);
             commandsDiv.innerHTML = output;
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 1500));
             try {
                 const launched = await ipcRenderer.invoke('ros-status', disabledButtonConfig.id);
                 if(launched){
@@ -223,7 +224,7 @@ launchCommand.addEventListener("click", async function(){
         } catch (error) {
             disabledButton.style.setProperty("--color1", "var(--bs-gray-500)");
             commandsDiv.innerHTML = error;
-        }            
+        }
     } 
     launchCommand.disabled = false;
 });

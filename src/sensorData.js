@@ -1,3 +1,4 @@
+const ROSLIB = require('roslib');
 
 const {Chart} = require("chart.js");
 require("luxon");

@@ -42,7 +42,6 @@ ipcRenderer.on("nuke-time", (event, time) => {
   document.getElementById("status").innerHTML = `Shutdown in: ${time}`;
 });
 
-// document.getElementById("status").onclick = () => {window.location.href = "systemHealth.html"};
 const { ros } = require("./allDaRos.js");
 connectionStatus = "closed";
 let connectRos = setInterval(function(){
@@ -95,68 +94,129 @@ ros.on("close", () => {
   }
   connectionStatus = "closed";
 });
+
 const { diagnosticMessages_listener } = require("./allDaRos.js");
-let diagnosticMessages = []; 
+let diagnosticMessages = [];
+let gpuTemperature = 0;
+let cpuTemperature = 0;
+
+function handleDBWIcon(color, shouldBounce) {
+  const dbwIcon = document.getElementById("dbwIcon");
+  if (dbwIcon) {
+    dbwIcon.style.setProperty("--color1", color);
+    if (shouldBounce) {
+      dbwIcon.classList.add("bounce_me");
+      setTimeout(function(){
+        dbwIcon.classList.remove("bounce_me");
+      }, 1000);
+    }
+  }
+}
+
+// Check if diagnosticMessages stopped coming in
+let lastMessageTime = Date.now();
+setInterval(function(){
+  if(Date.now() - lastMessageTime > 3000){
+    handleDBWIcon("var(--bs-danger)", true);
+    heatedSeatsOnOff(9999);
+  }
+}, 1000);
+
 diagnosticMessages_listener.subscribe(function(message){
-  if(!nagasaki){
+  lastMessageTime = Date.now();
   diagnosticMessages = message.status.map((status) => {
     return {
-      name: status.name.split("/")[2],
-      level: status.level
+      name: status.name,
+      level: status.level,
+      message: status.message
     }
   });
   let overallStatus = "var(--bs-success)";
   let msg = "No Warnings";
   let level = 0;
-  let DBW = false;
+  let drive_controller = false;
+  let power_steering = false;
+  let polaris_gem = false;
+  let accessory_controller = false;
   
-  function handleDBWIcon(color, shouldBounce) {
-    const dbwIcon = document.getElementById("dbwIcon");
-    if (dbwIcon) {
-      dbwIcon.style.setProperty("--color1", color);
-      if (shouldBounce) {
-        dbwIcon.classList.add("bounce_me");
-        setTimeout(function(){
-          dbwIcon.classList.remove("bounce_me");
-        }, 1000);
+  setInterval(function(){
+    // console.log(`GPU: ${gpuTemperature}, CPU: ${cpuTemperature}, Max: ${Math.max(gpuTemperature, cpuTemperature)}`);
+    if(drive_controller && power_steering && polaris_gem){
+      if(!accessory_controller){
+        handleDBWIcon("var(--bs-warning", false);
+      }
+      else{
+        handleDBWIcon("var(--bs-success)", false);
       }
     }
-  }
+    else{
+      handleDBWIcon("var(--bs-danger)", false);
+    }
+
+  }, 2000);
 
   diagnosticMessages.forEach((status) => {
-    if(status.name && status.name.toLowerCase().includes("dbw")){
-      // console.log(DBW);
-      if(status.level == 3 && DBW){
-        handleDBWIcon("var(--bs-danger)", false);
-        DBW = false;
+    if(status.name){
+      if(status.name.toLowerCase().includes("drive")){
+        // console.log(DBW);
+        drive_controller = status.level == 0;
       }
-      else if(status.level < 3 && !DBW){
-        handleDBWIcon("var(--bs-success)", false);
-        DBW = true;
+      else if(status.name.toLowerCase().includes("steering")){
+        power_steering = status.level == 0;
+      }
+      else if(status.name.toLowerCase().includes("gem")){
+        polaris_gem = status.level == 0;
+      }
+      else if(status.name.toLowerCase().includes("accessory")){
+        accessory_controller = status.level == 0;
+      }
+      else if(status.name.toLowerCase().includes("utility")){
+        if(status.message && status.name.toLowerCase().includes("gpu")){
+          if(status.level == 0){
+            let temperatureString = status.message.split(", ")[1];
+            gpuTemperature = parseInt(temperatureString);
+          }
+          else{
+            gpuTemperature = 999;
+          }
+          heatedSeatsOnOff(Math.max(gpuTemperature, cpuTemperature));
+        }
+        else if(status.message && status.name.toLowerCase().includes("cpu") && status.level == 0){
+          if(status.level == 0){
+            let temperatureString = status.message.split(", ")[1];
+            cpuTemperature = parseInt(temperatureString);
+          }
+          else{
+            cpuTemperature = 999;
+          }
+          heatedSeatsOnOff(Math.max(gpuTemperature, cpuTemperature));
+        }
       }
     }
     if(status.level > level && status.level < 3){
       level = status.level;
-      msg = status.name;
+      msg = status.name.split('/')[2];
     }
   });
-  if(level === 0){
-    overallStatus = "var(--bs-success)";
-  }
-  else if(level === 1){
-    overallStatus = "var(--bs-warning)";
-  }
-  else if(level === 2){
-    overallStatus = "var(--bs-danger)";
-  }
-  else{
-    overallStatus = "var(--bs-gray-500)";
-  }
-  const statusElement = document.getElementById("status");
-  if (statusElement) {
-    statusElement.style.setProperty("--color1", overallStatus);
-    statusElement.innerHTML = msg;
-  }
+
+  if(!nagasaki){
+    if(level === 0){
+      overallStatus = "var(--bs-success)";
+    }
+    else if(level === 1){
+      overallStatus = "var(--bs-warning)";
+    }
+    else if(level === 2){
+      overallStatus = "var(--bs-danger)";
+    }
+    else{
+      overallStatus = "var(--bs-gray-500)";
+    }
+    const statusElement = document.getElementById("status");
+    if (statusElement) {
+      statusElement.style.setProperty("--color1", overallStatus);
+      statusElement.innerHTML = msg;
+    }
   }
 });
 
@@ -285,13 +345,6 @@ function heatedSeatsOnOff(temp){
   }
   previousTemp = temp;
 }
-let tempCount = 0;
-setInterval(function(){
-  heatedSeatsOnOff(tempCount++);
-  if(tempCount > 100){
-    tempCount = 0;
-  }
-}, 250);
 
 function wipersOnOff(isWipers){
   document.getElementById("wipiesIcon").style.setProperty("--color1", isWipers ? 'var(--bs-blue' : 'var(--bs-secondary)');
@@ -338,6 +391,7 @@ function updateAccessories(message){
 }
 
 const {accessoriesGEMFeedback_listener, driveByWire_listener, gps_listener} = require("./allDaRos.js");
+const { set } = require('date-fns');
 
 accessoriesGEMFeedback_listener.subscribe((message) => {
   updateAccessories(message);
@@ -395,37 +449,47 @@ driveByWire_listener.subscribe((message) => {
   // }
 });
 
+// Fill gps stuff cause too lazy to change html
+/* style="display: inline;fill: #000000;fill-opacity: 1;stroke: #000000;stroke-width: 3.92833;stroke-opacity: 1;" */
+document.getElementById("gpsIcon_marker").style.setProperty("fill-opacity", '0');
+document.getElementById("gpsIcon_marker").style.setProperty("fill", "#000000");
+document.getElementById("gpsIcon_marker").style.setProperty("stroke-width", '9.92833');
+document.getElementById("gpsIcon_bar1").style.setProperty("stroke-width", '3.22833');
+document.getElementById("gpsIcon_bar2").style.setProperty("stroke-width", '3.22833');
+document.getElementById("gpsIcon_bar3").style.setProperty("stroke-width", '3.22833');
+document.getElementById("gpsIcon_bar4").style.setProperty("stroke-width", '3.22833');
+
 previousFix = 0;
 previousNumSats = 0;
 gps_listener.subscribe((message) => {
   if(previousFix != message.fix || previousNumSats != message.numsats){
-    document.getElementById("gpsIcon_marker").fill = message.fix >= 3 ? 'var(--bs-black)' : '#00FFFFFF';
-    document.getElementById("gpsIcon_bar1").fill = message.numsats >= 1 ? 'var(--bs-black)' : '#00FFFFFF';
-    document.getElementById("gpsIcon_bar2").fill = message.numsats >= 2 ? 'var(--bs-black)' : '#00FFFFFF';
-    document.getElementById("gpsIcon_bar3").fill = message.numsats >= 3 ? 'var(--bs-black)' : '#00FFFFFF';
-    document.getElementById("gpsIcon_bar4").fill = message.numsats >= 4 ? 'var(--bs-black)' : '#00FFFFFF';
+    document.getElementById("gpsIcon_marker").style.setProperty('fill-opacity', message.fix >= 3 ? '1' : '0');
+    document.getElementById("gpsIcon_bar1").style.setProperty('fill-opacity',  message.numsats >= 1 ? '1' : '0');
+    document.getElementById("gpsIcon_bar2").style.setProperty('fill-opacity',  message.numsats >= 2 ? '1' : '0');
+    document.getElementById("gpsIcon_bar3").style.setProperty('fill-opacity', message.numsats >= 3 ? '1' : '0');
+    document.getElementById("gpsIcon_bar4").style.setProperty('fill-opacity', message.numsats >= 4 ? '1' : '0');
 
     let gpsIcon = document.getElementById("gpsIcon");
     if(message.numsats <= 1 || message.fix < 3){
       gpsIcon.style.setProperty("--color1", 'var(--bs-danger)');
-      gpsIcon.classList.add("bounce_me");
-      setTimeout(function(){
-        gpsIcon.classList.remove("bounce_me");
-      }, 1000);
+      // gpsIcon.classList.add("bounce_me");
+      // setTimeout(function(){
+      //   gpsIcon.classList.remove("bounce_me");
+      // }, 1000);
     }
     else if(message.numsats >= 2 && message.numsats <= 3 && message.fix >= 3){
       gpsIcon.style.setProperty("--color1", 'var(--bs-warning)');
-      gpsIcon.classList.add("bounce_me");
-      setTimeout(function(){
-        gpsIcon.classList.remove("bounce_me");
-      }, 1000);
+      // gpsIcon.classList.add("bounce_me");
+      // setTimeout(function(){
+      //   gpsIcon.classList.remove("bounce_me");
+      // }, 1000);
     }
     else{
       gpsIcon.style.setProperty("--color1", 'var(--bs-success)');
-      gpsIcon.classList.add("bounce_me");
-      setTimeout(function(){
-        gpsIcon.classList.remove("bounce_me");
-      }, 1000);
+      // gpsIcon.classList.add("bounce_me");
+      // setTimeout(function(){
+      //   gpsIcon.classList.remove("bounce_me");
+      // }, 1000);
     }
   } 
   previousFix = message.fix;
@@ -437,5 +501,6 @@ document.getElementById("joyride").addEventListener("click", function(){
 });
 
 document.getElementById("status").addEventListener("click", function(){
+  // console.log("status clicked");
   location.href = "systemHealth.html";
 });

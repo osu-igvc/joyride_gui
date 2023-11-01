@@ -51,6 +51,12 @@ const driveByWire_listener = new ROSLIB.Topic({
 });
 
 // Map stuff
+const goalReached_listener = new ROSLIB.Topic({
+    ros: ros,
+    name: "/destination_reached",
+    messageType: "std_msgs/Bool"
+});
+
 const transformedCoords_publisher = new ROSLIB.Topic({
     ros: ros,
     name: '/goal_pose',
@@ -82,6 +88,11 @@ const getInitialLLClient = new ROSLIB.Service({
 });
 
 // Automode stuff
+const systemHealth_listener = new ROSLIB.Topic({
+    ros: ros,
+    name: "/system/health",
+    messageType: "joyride_interfaces/msg/SystemDiagnosticSummary"
+});
 const automodeClient = new ROSLIB.Service({
     ros: ros,
     name: '/requestAutoEnableDisable',
@@ -154,7 +165,9 @@ module.exports = {
     laneTrackingStream_listener: laneTrackingStream_listener,
     pedestrianDetectionStream_listener: pedestrianDetectionStream_listener,
     getInitialLLClient: getInitialLLClient,
-    odomResetClient: odomResetClient
+    odomResetClient: odomResetClient,
+    goalReached_listener: goalReached_listener,
+    systemHealth_listener: systemHealth_listener
 }
 
 

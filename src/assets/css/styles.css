@@ -236,3 +236,20 @@ body {
   color: var(--bs-white);
   visibility: hidden;
 }
+
+#status {
+  z-index: 15;
+}
+
+#joyride {
+  z-index: 15;
+}
+/* style="display: inline;fill: #000000;fill-opacity: 1;stroke: #000000;stroke-width: 3.92833;stroke-opacity: 1;" */
+#gpsIcon_marker, #gpsIcon_bar1, #gpsIcon_bar2, #gpsIcon_bar3, #gpsIcon_bar4 {
+  fill-opacity: 0;
+  stroke-width: 2.92833;
+  stroke-opacity: 1;
+  fill: #000000;
+  stroke: #000000;
+}
+

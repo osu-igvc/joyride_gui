@@ -98,7 +98,7 @@ function convertSecondstoTime(seconds) {
 }
 
 const rosbridge = spawn("ros2", ["launch", "rosbridge_server", "rosbridge_websocket_launch.xml", "port:=9190"]);
-const tileServer = spawn("tileserver-gl", ["--mbtiles", "./src/stilly.mbtiles", "--port", "9154"]);
+const tileServer = spawn("tileserver-gl", ["--mbtiles", "./src/rochesty.mbtiles", "--port", "9154"]);
 tileServer.stderr.on('data', function(data) {
   console.log('stderr: ' + data);
 })
@@ -137,6 +137,7 @@ log_listener.subscribe((message) => {
   }
 });
 
+// Launch stuffs
 const rosProcesses = {};
 
 ipcMain.handle('launch-ros', async (event, launchConfig) => {
@@ -201,7 +202,7 @@ ipcMain.handle("ros-status", async (event, id) => {
 
 const ROSLIB = require('roslib');
 const { systemShutdownClient } = require('./allDaRos.js');
-const { rejects } = require('assert');
+
 let nukeSystemStartTime = null;
 let nukeCountdown = null;
 let nukeIntervalFlag = false;
@@ -210,7 +211,7 @@ ipcMain.handle("toggle-nuke", async (event, toggle) => {
     nukeSystemStartTime = new Date().getTime();
     nukeIntervalFlag = true;
   }
-  else if(nukeSystemStartTime !== null && toggle === "stop") {
+  if(toggle === "stop") {
     clearInterval(nukeCountdown);
     nukeSystemStartTime = null;
     nukeIntervalFlag = false;
@@ -294,10 +295,10 @@ function playNextSong(){
 
 loadSongs();
 
-// setTimeout(() => {
-//   shuffleQueue();
-//   playNextSong();
-// }, 250);
+setTimeout(() => {
+  shuffleQueue();
+  playNextSong();
+}, 250);
 
 ipcMain.handle('get-current-audio-state', async (event) => {
   const backgroundState = new Promise((resolve) => {
@@ -370,5 +371,29 @@ ipcMain.handle("song-ended", async (event) => {
   playNextSong();
 });
 
+// Goal pose stuffs
+// const { transformedCoords_publisher, goalReached_listener } = require('./allDaRos.js');
+// let goalPoseArray = [];
+// ipcMain.handle("goal-poses", (event, goalPoses) => {
+//   goalPoseArray = goalPoses;
+//   console.log(goalPoseArray);
+//   goalPoseArray.forEach((goalPose) => {
+//     console.log(JSON.stringify(goalPose, null, 2));
+//   });
+//   sendNextGoalPose();
+// });
 
+// goalReached_listener.subscribe((message) => {
+//   if(message.data === "Goal Reached"){
+//     sendNextGoalPose();
+//   }
+// });
+
+// function sendNextGoalPose(){
+//   if(goalPoseArray.length > 0){
+//     const goalPose = goalPoseArray.shift();
+//     console.log("sending goal pose " + JSON.stringify(goalPose, null, 2));
+//     transformedCoords_publisher.publish(goalPose);
+//   }
+// }
 
